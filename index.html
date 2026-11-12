@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Геймификация отдела продаж — мобильный веб</title>
+<link rel="stylesheet" href="css/app.css">
+<style>
+  main{padding-bottom:calc(env(safe-area-inset-bottom) + 40px)}
+  .brand{width:52px;height:52px;border-radius:16px;background:var(--grad);box-shadow:var(--shadow-accent);
+         display:grid;place-items:center;color:#ffffff;font-weight:600;font-size:19px;letter-spacing:-.03em}
+  .nav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .nav a{
+    display:flex;flex-direction:column;gap:4px;padding:14px;min-height:96px;
+    background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm);
+  }
+  .nav a .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted)}
+  .nav a .t{font-size:14.5px;font-weight:600;line-height:1.25;letter-spacing:-.01em}
+  .nav a .d{font-size:12px;color:var(--muted);line-height:1.35;margin-top:auto}
+  @media (max-width:359px){ .nav{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <main class="no-tabbar" style="padding-top:calc(env(safe-area-inset-top) + 34px)" data-od-id="main-index">
+
+    <div class="row" style="gap:12px">
+      <div class="brand">М</div>
+      <div>
+        <div class="eyebrow">mobyte.ai</div>
+        <h1 style="font-size:19px">Геймификация отдела продаж</h1>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:22px;font-size:15px">
+      Мобильный веб-интерфейс: менеджер видит свои звонки, очки, навыки, доход и место в рейтинге,
+      руководитель — алерты по команде. Открывается в браузере телефона, без установки.
+    </p>
+
+    <a class="btn accent" href="screens/login.html" style="margin-top:20px" data-od-id="btn-start">Начать со входа</a>
+    <a class="btn ghost" href="ux-map.html" style="margin-top:10px" data-od-id="btn-uxmap">UX-схема приложения</a>
+
+    <div class="sec"><h2 data-od-id="h-rep">Менеджер</h2></div>
+    <nav class="nav" data-od-id="nav-rep">
+      <a href="screens/dashboard.html" data-od-id="link-dashboard"><span class="n">01</span><span class="t">Главная</span><span class="d">план дня, пульс, заработок</span></a>
+      <a href="screens/calls.html" data-od-id="link-calls"><span class="n">02</span><span class="t">Звонки</span><span class="d">лента дня с фильтрами</span></a>
+      <a href="screens/call-detail.html" data-od-id="link-call-detail"><span class="n">03</span><span class="t">Разбор звонка</span><span class="d">цитата, таймкод, рекомендация</span></a>
+      <a href="screens/points-log.html" data-od-id="link-points"><span class="n">04</span><span class="t">Журнал очков</span><span class="d">за что начислено 58</span></a>
+      <a href="screens/metrics.html" data-od-id="link-metrics"><span class="n">05</span><span class="t">Метрики</span><span class="d">воронка, потери, я и команда</span></a>
+      <a href="screens/skills.html" data-od-id="link-skills"><span class="n">06</span><span class="t">Дерево навыков</span><span class="d">пять этапов, слабый узел</span></a>
+      <a href="screens/quests.html" data-od-id="link-quests"><span class="n">07</span><span class="t">Квесты</span><span class="d">заморозка баланса под условие</span></a>
+      <a href="screens/profile.html" data-od-id="link-profile"><span class="n">08</span><span class="t">Профиль</span><span class="d">уровень, серия, стрики, награды</span></a>
+      <a href="screens/earnings.html" data-od-id="link-earnings"><span class="n">09</span><span class="t">Заработок</span><span class="d">потоки, ступени, бонусы</span></a>
+      <a href="screens/goal.html" data-od-id="link-goal"><span class="n">10</span><span class="t">Цель</span><span class="d">ходы до следующей ступени</span></a>
+      <a href="screens/leaderboard.html" data-od-id="link-leaderboard"><span class="n">11</span><span class="t">Рейтинг</span><span class="d">прирост к себе, не абсолют</span></a>
+      <a href="screens/kudos.html" data-od-id="link-kudos"><span class="n">12</span><span class="t">Признание</span><span class="d">+10 коллеге, +5 себе</span></a>
+      <a href="screens/shop.html" data-od-id="link-shop"><span class="n">13</span><span class="t">Магазин</span><span class="d">уровень — пропуск, баланс — валюта</span></a>
+    </nav>
+
+    <div class="sec"><h2 data-od-id="h-lead">Руководитель</h2></div>
+    <nav class="nav" data-od-id="nav-lead">
+      <a href="screens/team.html" data-od-id="link-team"><span class="n">14</span><span class="t">Тренерская зона</span><span class="d">алерты по сотрудникам</span></a>
+      <a href="screens/login.html" data-od-id="link-login"><span class="n">15</span><span class="t">Вход</span><span class="d">логин, пароль, выбор роли</span></a>
+    </nav>
+
+    <p class="note" style="margin-top:24px" data-od-id="note-disclaimer">
+      Интерфейс — пример визуализации. Финальные экраны собираются по работе бизнес-аналитика
+      с фокусом на эффективность именно ваших менеджеров. Требования — в отдельном документе.
+    </p>
+
+  </main>
+</div>
+</body>
+</html>

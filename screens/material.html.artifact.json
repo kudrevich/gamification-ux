@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/material.html",
+  "entry": "screens/material.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-12T10:28:01.517Z",
+  "updatedAt": "2026-11-12T10:28:01.517Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

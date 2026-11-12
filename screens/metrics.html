@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Метрики — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .vs{display:grid;grid-template-columns:1fr;gap:14px}
+  .vs .lbl{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px}
+  .vs .pair{display:grid;gap:5px}
+  .vs .ln{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;font-size:12px}
+  .vs .ln .t{height:8px;border-radius:var(--r-pill);background:var(--surface);overflow:hidden}
+  .vs .ln .t>i{display:block;height:100%;border-radius:var(--r-pill)}
+  .vs .me .t>i{background:var(--accent)}
+  .vs .tm .t>i{background:color-mix(in srgb,#1447e6 45%,#e6dfff)}
+  .vs .val{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+  .vs .behind .val{color:var(--accent);font-weight:600}
+  .chart{width:100%;height:120px;display:block}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-metrics">
+    <a class="iconbtn" href="dashboard.html" aria-label="На главную" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Мои показатели</div>
+      <h1 class="sm">Метрики</h1>
+    </div>
+  </header>
+
+  <main data-od-id="main-metrics">
+
+    <div class="seg" id="period" style="margin-top:14px" data-od-id="seg-period">
+      <button data-value="week" aria-pressed="true">Неделя</button>
+      <button data-value="month" aria-pressed="false">Месяц</button>
+    </div>
+
+    <!-- Конверсия -->
+    <section class="card" id="conversion" style="margin-top:14px" data-od-id="section-conversion">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Конверсия в сделку</div>
+          <div class="big" style="margin-top:6px" id="conv-val">23%</div>
+        </div>
+        <span class="delta up" id="conv-delta">▲ 4</span>
+      </div>
+      <p class="small muted" style="margin-top:10px" id="conv-note">
+        К прошлой неделе. Команда в среднем 26% — вы ниже на 3 пункта.
+      </p>
+    </section>
+
+    <!-- Воронка -->
+    <div class="sec"><h2 data-od-id="h-funnel">Воронка</h2><span class="small muted" id="funnel-period">за неделю</span></div>
+    <section class="funnel" id="funnel" data-od-id="section-funnel"></section>
+
+    <!-- Причины потерь -->
+    <div class="sec"><h2 data-od-id="h-losses">Почему теряю</h2><span class="small muted">доля потерь</span></div>
+    <section class="card" data-od-id="section-losses">
+      <div class="barrow" data-od-id="loss-price">
+        <span class="lb">Цена</span><span class="vl">34%</span>
+        <span class="track"><i style="width:34%"></i></span>
+      </div>
+      <div class="barrow" data-od-id="loss-nextstep">
+        <span class="lb">Нет следующего шага</span><span class="vl">27%</span>
+        <span class="track"><i style="width:27%"></i></span>
+      </div>
+      <div class="barrow soft" data-od-id="loss-nocontact">
+        <span class="lb">Не дозвонились</span><span class="vl">21%</span>
+        <span class="track"><i style="width:21%"></i></span>
+      </div>
+      <div class="barrow soft" data-od-id="loss-competitor" style="margin-bottom:0">
+        <span class="lb">Ушли к конкуренту</span><span class="vl">14%</span>
+        <span class="track"><i style="width:14%"></i></span>
+      </div>
+      <div class="hr"></div>
+      <p class="small muted">
+        «Нет следующего шага» — единственная причина, которая целиком в ваших руках.
+        Она же лежит в основе активного квеста.
+      </p>
+    </section>
+
+    <!-- Я vs команда -->
+    <div class="sec"><h2 data-od-id="h-vs">Я и команда</h2></div>
+    <section class="card vs" id="objections" data-od-id="section-vs"></section>
+
+    <!-- Динамика -->
+    <div class="sec"><h2 data-od-id="h-dynamics">Динамика конверсии</h2><span class="small muted">6 недель</span></div>
+    <section class="card" id="nextstep" data-od-id="section-dynamics">
+      <svg class="chart" viewBox="0 0 320 120" preserveAspectRatio="none" role="img" aria-label="Конверсия по неделям: 18, 19, 19, 21, 22, 23 процента">
+        <line x1="0" y1="100" x2="320" y2="100" stroke="#e6dfff" stroke-width="1"/>
+        <line x1="0" y1="60"  x2="320" y2="60"  stroke="#e6dfff" stroke-width="1"/>
+        <line x1="0" y1="20"  x2="320" y2="20"  stroke="#e6dfff" stroke-width="1"/>
+        <polyline fill="none" stroke="#5a28ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                  points="10,84 72,76 134,76 196,60 258,52 310,44"/>
+        <circle cx="310" cy="44" r="4.5" fill="#5a28ff"/>
+      </svg>
+      <div class="between small muted mono" style="margin-top:8px">
+        <span>18%</span><span>неделя за неделей</span><span>23%</span>
+      </div>
+      <p class="small muted" style="margin-top:10px">
+        С момента подключения аналитики. Точка отсчёта — первая полная неделя с записью всех разговоров.
+      </p>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-duration">Средний разговор</h2></div>
+    <section class="card" id="duration" data-od-id="section-duration">
+      <div class="between">
+        <span class="big sm">4:12</span><span class="delta up">▲ 0:20</span>
+      </div>
+      <p class="small muted" style="margin-top:10px">
+        Длина сама по себе ничего не значит. Она полезна рядом с конверсией: разговор вырос, конверсия тоже —
+        значит время уходит на квалификацию, а не на уговоры.
+      </p>
+    </section>
+
+    <a class="btn ghost" href="skills.html" style="margin-top:22px" data-od-id="btn-to-skills">То же самое по навыкам</a>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="dashboard" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var DATA = {
+    week: {
+      conv: '23%', delta: '▲ 4', up: true,
+      note: 'К прошлой неделе. Команда в среднем 26% — вы ниже на 3 пункта.',
+      label: 'за неделю',
+      funnel: [
+        { n: 184, l: 'Набрано' },
+        { n: 132, l: 'Разговоров' },
+        { n: 76,  l: 'Квалифицировано' },
+        { n: 42,  l: 'Сделок' }
+      ]
+    },
+    month: {
+      conv: '23%', delta: '▲ 5', up: true,
+      note: 'Агрегат за 4 полные недели. Команда в среднем 26%.',
+      label: 'за 4 недели',
+      funnel: [
+        { n: 742, l: 'Набрано' },
+        { n: 531, l: 'Разговоров' },
+        { n: 305, l: 'Квалифицировано' },
+        { n: 168, l: 'Сделок' }
+      ]
+    }
+  };
+
+  var VS = [
+    { name: 'Конверсия',          me: 23, team: 26, unit: '%', max: 40 },
+    { name: 'Отработка возражений', me: 71, team: 64, unit: '%', max: 100 },
+    { name: 'Назначен next step', me: 58, team: 72, unit: '%', max: 100 },
+    { name: 'Резюме проведено',   me: 60, team: 74, unit: '%', max: 100 }
+  ];
+
+  function renderFunnel(d) {
+    var box = document.getElementById('funnel');
+    box.innerHTML = d.funnel.map(function (s, i) {
+      var prev = i === 0 ? null : d.funnel[i - 1].n;
+      var conv = prev ? Math.round(s.n / prev * 100) + '% ↓' : '';
+      return '<div class="step" data-od-id="funnel-step-' + i + '">' +
+        '<span>' + s.l + '</span>' +
+        '<span class="row" style="gap:10px"><span class="n">' + App.num(s.n) + '</span>' +
+        '<span class="link">' + conv + '</span></span></div>';
+    }).join('');
+    document.getElementById('funnel-period').textContent = d.label;
+  }
+
+  function renderVs() {
+    document.getElementById('objections').innerHTML = VS.map(function (m) {
+      var behind = m.me < m.team;
+      return '<div data-od-id="vs-' + m.name.split(' ')[0].toLowerCase() + '">' +
+        '<div class="lbl"><span>' + m.name + '</span>' +
+        (behind ? '<span class="delta down">ниже команды</span>' : '<span class="delta up">выше команды</span>') +
+        '</div>' +
+        '<div class="pair">' +
+          '<div class="ln me ' + (behind ? 'behind' : '') + '"><span class="muted">я</span>' +
+            '<span class="t"><i style="width:' + (m.me / m.max * 100) + '%"></i></span>' +
+            '<span class="val">' + m.me + m.unit + '</span></div>' +
+          '<div class="ln tm"><span class="muted">команда</span>' +
+            '<span class="t"><i style="width:' + (m.team / m.max * 100) + '%"></i></span>' +
+            '<span class="val">' + m.team + m.unit + '</span></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function apply(key) {
+    var d = DATA[key];
+    document.getElementById('conv-val').textContent = d.conv;
+    var dl = document.getElementById('conv-delta');
+    dl.textContent = d.delta;
+    dl.className = 'delta ' + (d.up ? 'up' : 'down');
+    document.getElementById('conv-note').textContent = d.note;
+    renderFunnel(d);
+  }
+
+  document.getElementById('period').addEventListener('segchange', function (e) {
+    apply(e.detail.value);
+  });
+
+  apply('week');
+  renderVs();
+
+  /* Мягкая прокрутка к якорю с учётом липкой шапки */
+  if (location.hash) {
+    var t = document.querySelector(location.hash);
+    if (t) {
+      var y = t.getBoundingClientRect().top + window.scrollY - 92;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+})();
+</script>
+</body>
+</html>

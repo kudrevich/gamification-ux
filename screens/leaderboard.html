@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Рейтинг — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .podium{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end}
+  .pod{border-radius:var(--r-md);padding:12px 8px;text-align:center;border:1px solid var(--border);background:var(--surface)}
+  .pod.first{background:var(--grad);border-color:transparent;color:#ffffff;box-shadow:var(--shadow-accent)}
+  .pod .ini{width:38px;height:38px;border-radius:var(--r-pill);margin:0 auto 8px;display:grid;place-items:center;
+            font-family:var(--mono);font-size:12px;font-weight:600;background:var(--bg);color:var(--fg)}
+  .pod.first .ini{background:rgba(255,255,255,.22);color:#ffffff}
+  .pod .nm{font-size:12.5px;font-weight:600;line-height:1.2}
+  .pod .vl{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:4px}
+  .pod .pl{font-family:var(--mono);font-size:10.5px;opacity:.7;margin-top:2px}
+  .pod.h1{padding-top:20px;padding-bottom:20px}
+  .rank{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);min-height:48px}
+  .rank:last-child{border-bottom:none}
+  .rank.me{background:color-mix(in srgb,#5a28ff 6%,transparent);margin:0 -14px;padding-left:14px;padding-right:14px;border-radius:var(--r-sm)}
+  .rank .pos{font-family:var(--mono);font-size:13px;color:var(--muted);width:20px;flex:none}
+  .rank .nm{font-weight:600;font-size:14.5px}
+  .rank .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .rank .vl{font-family:var(--mono);font-size:15px;font-weight:600;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-leaderboard">
+    <div class="ttl">
+      <div class="hi">Неделя 1–7 июля · предварительно</div>
+      <h1 data-od-id="h-rank">Рейтинг</h1>
+    </div>
+    <a class="avatar" href="profile.html" aria-label="Профиль" data-od-id="link-profile">ИК</a>
+  </header>
+
+  <main data-od-id="main-leaderboard">
+
+    <section class="podium" style="margin-top:14px" id="podium" data-od-id="section-podium"></section>
+
+    <section class="card" style="margin-top:14px" data-od-id="section-mystatus">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Ваше место</div>
+          <div class="row" style="gap:8px;align-items:baseline;margin-top:4px">
+            <span class="big sm">#3</span><span class="muted">лига Серебро</span>
+          </div>
+        </div>
+        <span class="chip accent">до Золота 3%</span>
+      </div>
+      <p class="small muted" style="margin-top:12px">
+        Три процентных пункта конверсии — это примерно две сделки при вашем текущем объёме звонков.
+      </p>
+    </section>
+
+    <div class="seg" id="metric" style="margin-top:14px" data-od-id="seg-metric">
+      <button data-value="score" aria-pressed="true">Балл</button>
+      <button data-value="conv" aria-pressed="false">Конверсия</button>
+      <button data-value="growth" aria-pressed="false">Прирост</button>
+    </div>
+
+    <section class="card" style="margin-top:12px" id="list" data-od-id="section-list"></section>
+
+    <div class="sec"><h2 data-od-id="h-formula">Как считается балл</h2></div>
+    <section class="card" data-od-id="section-formula">
+      <p class="mono small muted" style="line-height:1.7">
+        балл = 0.6 × прирост к своей прошлой неделе (п.п.) + очки за качество разговоров
+      </p>
+      <div class="hr"></div>
+      <div class="kv"><span class="k">Ваш прирост</span><span class="v">+4.0 п.п. → +2.4</span></div>
+      <div class="kv"><span class="k">Очки за качество</span><span class="v">58.0</span></div>
+      <div class="kv total"><span>Ваш балл</span><span class="v">60.4</span></div>
+      <p class="small muted" style="margin-top:12px">
+        Основа — прирост к себе, а не абсолют. В топ может подняться менеджер с невысоким абсолютным баллом,
+        но хорошей динамикой. Стаж преимущества не даёт. Переключите метрику на «Прирост» — порядок изменится.
+      </p>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-leagues">Лиги</h2></div>
+    <section class="card" data-od-id="section-leagues">
+      <div class="lrow"><div class="tag blue">З</div><div class="body"><div class="title">Золото</div><div class="sub">конверсия от 26%</div></div><span class="mono small">2 чел.</span></div>
+      <div class="lrow"><div class="tag win">С</div><div class="body"><div class="title">Серебро</div><div class="sub">конверсия 20–25% · вы здесь</div></div><span class="mono small">2 чел.</span></div>
+      <div class="lrow"><div class="tag">Б</div><div class="body"><div class="title">Бронза</div><div class="sub">конверсия до 20%</div></div><span class="mono small">2 чел.</span></div>
+      <p class="small muted" style="margin-top:12px">Пересчёт лиг — в понедельник в 9:30, вместе с итогами недели.</p>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="leaderboard" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  /* quality — очки за качество разговоров недели (0–100), growth — прирост к своей прошлой неделе */
+  var TEAM = [
+    { id: 'irina',   name: 'Ирина П.',   ini: 'ИП', conv: 31, growth: 2,  quality: 72, league: 'Золото' },
+    { id: 'maria',   name: 'Мария Л.',   ini: 'МЛ', conv: 26, growth: 3,  quality: 68, league: 'Золото' },
+    { id: 'ivan',    name: 'Иван Кудревич', ini: 'ИК', conv: 23, growth: 4, quality: 58, league: 'Серебро', me: true },
+    { id: 'pavel',   name: 'Павел Т.',   ini: 'ПТ', conv: 21, growth: 1,  quality: 55, league: 'Серебро' },
+    { id: 'klavdia', name: 'Клавдия Н.', ini: 'КН', conv: 19, growth: 5,  quality: 52, league: 'Бронза' },
+    { id: 'oleg',    name: 'Олег В.',    ini: 'ОВ', conv: 17, growth: -2, quality: 49, league: 'Бронза' }
+  ];
+
+  TEAM.forEach(function (p) { p.score = +(0.6 * p.growth + p.quality).toFixed(1); });
+
+  var metric = 'score';
+
+  var VIEW = {
+    score:  { val: function (p) { return p.score.toFixed(1); },
+              sub: function (p) { return 'прирост ' + sgn(p.growth) + ' п.п. · качество ' + p.quality; },
+              sort: function (a, b) { return b.score - a.score; } },
+    conv:   { val: function (p) { return p.conv + '%'; },
+              sub: function (p) { return p.league + ' · балл ' + p.score.toFixed(1); },
+              sort: function (a, b) { return b.conv - a.conv; } },
+    growth: { val: function (p) { return sgn(p.growth) + ' п.п.'; },
+              sub: function (p) { return 'конверсия ' + p.conv + '% · балл ' + p.score.toFixed(1); },
+              sort: function (a, b) { return b.growth - a.growth; } }
+  };
+
+  function sgn(n) { return (n > 0 ? '+' : '') + n; }
+
+  function renderPodium() {
+    var top = TEAM.slice().sort(VIEW.score.sort).slice(0, 3);
+    var order = [top[1], top[0], top[2]];       // 2 — 1 — 3
+    var place = [2, 1, 3];
+    document.getElementById('podium').innerHTML = order.map(function (p, i) {
+      var first = place[i] === 1;
+      return '<div class="pod' + (first ? ' first h1' : '') + '" data-od-id="pod-' + p.id + '">' +
+        '<div class="ini">' + p.ini + '</div>' +
+        '<div class="nm">' + p.name.split(' ')[0] + '</div>' +
+        '<div class="vl">' + p.conv + '%</div>' +
+        '<div class="pl">#' + place[i] + ' · балл ' + p.score.toFixed(1) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderList() {
+    var v = VIEW[metric];
+    var rows = TEAM.slice().sort(v.sort);
+    document.getElementById('list').innerHTML = rows.map(function (p, i) {
+      return '<div class="rank' + (p.me ? ' me' : '') + '" data-od-id="rank-' + p.id + '">' +
+        '<span class="pos">' + (i + 1) + '</span>' +
+        '<span style="flex:1;min-width:0"><span class="nm">' + p.name + '</span>' +
+        '<span class="sub" style="display:block">' + v.sub(p) + '</span></span>' +
+        '<span class="vl">' + v.val(p) + '</span></div>';
+    }).join('');
+  }
+
+  document.getElementById('metric').addEventListener('segchange', function (e) {
+    metric = e.detail.value;
+    renderList();
+    if (metric === 'growth') App.toast('Порядок изменился — динамика важнее абсолюта');
+  });
+
+  renderPodium();
+  renderList();
+})();
+</script>
+</body>
+</html>

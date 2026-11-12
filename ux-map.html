@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>UX-схема приложения — геймификация отдела продаж</title>
+<style>
+/* ==========================================================================
+   UX-схема. Дизайн-система mobyte.ai — только брендовые токены.
+   ========================================================================== */
+:root{
+  --bg:#ffffff; --surface:#f4f2fd; --fg:#0c0618; --muted:#5f5b67;
+  --border:#e6dfff; --accent:#5a28ff; --accent-2:#1447e6;
+  --r-lg:28px; --r-md:18px; --r-sm:12px; --r-pill:999px;
+  --shadow:0 24px 70px rgba(12,6,24,.10);
+  --shadow-sm:0 6px 18px rgba(12,6,24,.06);
+  --shadow-accent:0 18px 44px rgba(90,40,255,.22);
+  --grad:linear-gradient(135deg,#5a28ff 0%,#1447e6 100%);
+  --font:"Geist",system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono","SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+  --z:1;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);font-size:15px;line-height:1.45;color:var(--fg);background:var(--surface);
+     -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+p{text-wrap:pretty}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
+svg{display:block}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+.page{max-width:1240px;margin-inline:auto;padding:0 20px 64px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.muted{color:var(--muted)}
+.small{font-size:12.5px;line-height:1.45}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* --- Шапка --------------------------------------------------------------- */
+.head{padding:44px 0 22px}
+.brand{width:46px;height:46px;border-radius:14px;background:var(--grad);box-shadow:var(--shadow-accent);
+       display:grid;place-items:center;color:#ffffff;font-weight:600;font-size:17px;letter-spacing:-.03em}
+.head .row{display:flex;align-items:center;gap:12px}
+.head h1{font-size:clamp(24px,3.4vw,34px);margin-top:20px;max-width:22ch}
+.head p{color:var(--muted);margin-top:10px;max-width:64ch}
+
+/* --- Панель управления --------------------------------------------------- */
+.bar{
+  position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:12px 0;background:color-mix(in srgb,#f4f2fd 88%,transparent);
+  backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+  margin-bottom:14px;
+}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-pill);padding:4px}
+.seg button{min-height:36px;padding:0 14px;border-radius:var(--r-pill);font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
+.zoom{display:flex;gap:4px;margin-left:auto;background:var(--bg);border:1px solid var(--border);
+      border-radius:var(--r-pill);padding:4px;align-items:center}
+.zoom button{width:36px;height:36px;border-radius:var(--r-pill);display:grid;place-items:center;font-size:17px;color:var(--fg)}
+.zoom .lvl{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:44px;text-align:center}
+
+/* --- Полотно графа -------------------------------------------------------- */
+.viewport{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow);overflow:auto;-webkit-overflow-scrolling:touch;
+  max-height:min(78vh,940px);
+}
+.stage{width:calc(1180px * var(--z));height:calc(1075px * var(--z));position:relative}
+.canvas{width:1180px;height:1075px;position:absolute;top:0;left:0;transform:scale(var(--z));transform-origin:0 0}
+.edges{position:absolute;inset:0;width:1180px;height:1075px;pointer-events:none}
+.edges path{fill:none;stroke:var(--border);stroke-width:1.6;transition:stroke .18s ease,opacity .18s ease,stroke-width .18s ease}
+.edges path.role{stroke-dasharray:1 7;stroke-linecap:round;stroke-width:2.4}
+.edges path.action{stroke-dasharray:5 5}
+.edges text{font-family:var(--mono);font-size:9.5px;fill:var(--muted);paint-order:stroke;
+            stroke:#ffffff;stroke-width:4px;stroke-linejoin:round;transition:opacity .18s ease}
+.edges .arrow{fill:var(--border);transition:fill .18s ease,opacity .18s ease}
+
+.rail{position:absolute;border:1.6px solid var(--border);border-right:none;border-radius:var(--r-md) 0 0 var(--r-md)}
+.rail-tag{position:absolute;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+          color:var(--muted);background:var(--bg);padding:4px 0;writing-mode:vertical-rl;transform:rotate(180deg)}
+
+/* Узлы */
+.node{
+  position:absolute;width:184px;background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:11px 13px;box-shadow:var(--shadow-sm);
+  transition:box-shadow .18s ease,border-color .18s ease,opacity .18s ease,transform .18s ease;
+  text-align:left;display:block;
+}
+.node:hover,.node.hot{border-color:var(--accent);box-shadow:var(--shadow-accent);transform:translateY(-1px)}
+.node .n{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--muted)}
+.node .t{font-size:14px;font-weight:600;letter-spacing:-.01em;margin-top:3px;line-height:1.2}
+.node .d{font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:4px}
+.node.entry{background:var(--grad);border-color:transparent;color:#ffffff;box-shadow:var(--shadow-accent)}
+.node.entry .n,.node.entry .d{color:rgba(255,255,255,.78)}
+.node.hub{border-color:var(--accent);border-width:1.5px}
+.node.lead{background:var(--surface)}
+.node.sheet{width:154px;padding:9px 12px;border-style:dashed;background:var(--surface);box-shadow:none}
+.node.sheet .t{font-size:12.5px}
+.dim{opacity:.2}
+.dim.node{box-shadow:none}
+
+/* --- Легенда -------------------------------------------------------------- */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);
+    background:var(--bg);border:1px solid var(--border);border-radius:var(--r-pill);padding:7px 13px}
+.lg i{width:22px;height:2px;background:var(--border);flex:none;border-radius:2px}
+.lg i.nav{background:var(--accent)}
+.lg i.role{background:linear-gradient(90deg,var(--accent-2) 0 3px,transparent 3px 7px) repeat-x;height:2.4px}
+.lg i.action{background:linear-gradient(90deg,var(--muted) 0 5px,transparent 5px 10px) repeat-x}
+.lg b{width:14px;height:14px;border-radius:5px;flex:none}
+.lg b.hub{border:1.5px solid var(--accent)}
+.lg b.lead{background:var(--surface);border:1px solid var(--border)}
+.lg b.sheet{border:1px dashed var(--border);background:var(--surface)}
+
+/* --- Секции ниже графа ---------------------------------------------------- */
+.sec{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:44px 2px 14px}
+.sec h2{font-size:19px}
+.sec span{font-size:12.5px;color:var(--muted)}
+
+.flow{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.flow::-webkit-scrollbar{display:none}
+.flow .st{
+  flex:none;width:196px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:14px;box-shadow:var(--shadow-sm);position:relative;
+}
+.flow .st .tm{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+.flow .st h3{font-size:14.5px;margin-top:6px}
+.flow .st p{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+.flow .st .scr{margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--accent-2)}
+
+.pipe{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.pipe .p{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)}
+.pipe .p h3{font-size:14px;margin-top:6px}
+.pipe .p p{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.chain .c{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-pill);
+          padding:9px 15px;font-size:13px;font-weight:600}
+.chain .c.on{background:color-mix(in srgb,#5a28ff 10%,transparent);border-color:transparent;color:var(--accent)}
+.chain .c.blue{background:color-mix(in srgb,#1447e6 10%,transparent);border-color:transparent;color:var(--accent-2)}
+.chain .ar{color:var(--muted);font-family:var(--mono);font-size:13px}
+
+.note{font-size:12.5px;color:var(--muted);background:var(--bg);border:1px solid var(--border);
+      border-radius:var(--r-md);padding:14px 16px;margin-top:16px}
+
+.grid2{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;box-shadow:var(--shadow-sm)}
+.card h3{font-size:14.5px}
+.card ul{margin:10px 0 0 0;padding:0;list-style:none}
+.card li{font-size:12.5px;color:var(--muted);padding:7px 0;border-bottom:1px solid var(--border);line-height:1.4}
+.card li:last-child{border-bottom:none}
+.card li b{color:var(--fg);font-weight:600}
+
+.foot{margin-top:52px;padding-top:22px;border-top:1px solid var(--border);
+      display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;
+     padding:0 20px;min-height:46px;border-radius:var(--r-pill);background:var(--fg);color:#ffffff}
+.btn.ghost{background:var(--bg);color:var(--fg);border:1px solid var(--border)}
+
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
+@media (max-width:640px){
+  .page{padding:0 14px 48px}
+  .head{padding:28px 0 16px}
+  .bar{gap:8px}
+  .zoom{margin-left:0}
+  .viewport{max-height:70vh}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="head" data-od-id="head">
+    <div class="row">
+      <div class="brand">М</div>
+      <div>
+        <div class="eyebrow">mobyte.ai · геймификация отдела продаж</div>
+        <div class="small muted">Мобильный веб · 15 экранов · 2 роли</div>
+      </div>
+    </div>
+    <h1>UX-схема приложения</h1>
+    <p>
+      Карта навигации, сквозной сценарий дня, потоки данных и жизненный цикл очков.
+      Наведите на узел, чтобы увидеть только его связи. Нажмите — откроется живой экран прототипа.
+    </p>
+  </header>
+
+  <div class="bar" data-od-id="controls">
+    <div class="seg" id="role" role="group" aria-label="Роль">
+      <button data-value="all" aria-pressed="true">Все</button>
+      <button data-value="rep" aria-pressed="false">Менеджер</button>
+      <button data-value="lead" aria-pressed="false">Руководитель</button>
+    </div>
+    <button class="lg" id="reset" style="cursor:pointer" data-od-id="btn-reset">Сбросить подсветку</button>
+    <div class="zoom" role="group" aria-label="Масштаб">
+      <button id="zout" aria-label="Уменьшить">−</button>
+      <span class="lvl mono" id="zlvl">100%</span>
+      <button id="zin" aria-label="Увеличить">+</button>
+      <button id="zfit" aria-label="Вписать в экран" style="width:auto;padding:0 12px;font-size:12px">Вписать</button>
+    </div>
+  </div>
+
+  <!-- ГРАФ -->
+  <div class="viewport" id="viewport" data-od-id="graph-viewport">
+    <div class="stage" id="stage">
+      <div class="canvas" id="canvas">
+        <svg class="edges" id="edges" viewBox="0 0 1180 1075" aria-hidden="true"></svg>
+        <div class="rail" id="rail"></div>
+        <div class="rail-tag" id="rail-tag">Таб-бар</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" data-od-id="legend">
+    <span class="lg"><i class="nav"></i> переход по действию</span>
+    <span class="lg"><i class="role"></i> вход по роли</span>
+    <span class="lg"><i class="action"></i> открытие диалога</span>
+    <span class="lg"><b class="hub"></b> экран таб-бара</span>
+    <span class="lg"><b class="lead"></b> экран руководителя</span>
+    <span class="lg"><b class="sheet"></b> модальный диалог</span>
+  </div>
+
+  <p class="note" data-od-id="note-back">
+    Обратные переходы на схеме не рисуются, чтобы не превращать её в клубок: у каждого вложенного экрана
+    есть кнопка «←» в шапке и работает системный «назад» браузера. Лента звонков дополнительно восстанавливает
+    выбранный фильтр и позицию прокрутки при возврате из разбора.
+  </p>
+
+  <!-- СЦЕНАРИЙ ДНЯ -->
+  <div class="sec"><h2 data-od-id="h-day">Сквозной сценарий дня</h2><span>понедельник, 9 июля</span></div>
+  <div class="flow" data-od-id="flow-day">
+    <article class="st">
+      <div class="tm">9:41</div>
+      <h3>Открываю приложение</h3>
+      <p>За пять секунд: в графике или нет, где просело, сколько уже заработал.</p>
+      <div class="scr">Главная</div>
+    </article>
+    <article class="st">
+      <div class="tm">9:45</div>
+      <h3>«Разбери сегодня»</h3>
+      <p>Лента дня, фильтр «требуют разбора» — четыре звонка.</p>
+      <div class="scr">Звонки</div>
+    </article>
+    <article class="st">
+      <div class="tm">11:20</div>
+      <h3>Разбираю сорванный</h3>
+      <p>Оценка 58/100, цитата с таймкодом, готовая формулировка сильнее.</p>
+      <div class="scr">Разбор звонка</div>
+    </article>
+    <article class="st">
+      <div class="tm">11:26</div>
+      <h3>Проверяю начисление</h3>
+      <p>Этапы +30, бонусы +28, штрафы 0 — итог 58 очков.</p>
+      <div class="scr">Журнал очков</div>
+    </article>
+    <article class="st">
+      <div class="tm">14:05</div>
+      <h3>Где я сыплюсь</h3>
+      <p>Воронка, причины потерь, сравнение с командой. Затем то же по навыкам.</p>
+      <div class="scr">Метрики → Навыки</div>
+    </article>
+    <article class="st">
+      <div class="tm">14:12</div>
+      <h3>Беру задание</h3>
+      <p>Слабый узел «Закрытие» превращается в квест, 500 очков замораживаются.</p>
+      <div class="scr">Квесты</div>
+    </article>
+    <article class="st">
+      <div class="tm">17:30</div>
+      <h3>Серия и деньги</h3>
+      <p>12 дней подряд, 42 250 ₽ за месяц, до следующей ступени 100 000 ₽ оборота.</p>
+      <div class="scr">Профиль → Заработок → Цель</div>
+    </article>
+    <article class="st">
+      <div class="tm">пятница</div>
+      <h3>Итоги недели</h3>
+      <p>Место #3, до Золота 3%. Руководитель видит ту же неделю через алерты.</p>
+      <div class="scr">Рейтинг · Тренерская зона</div>
+    </article>
+  </div>
+
+  <!-- ПОТОКИ ДАННЫХ -->
+  <div class="sec"><h2 data-od-id="h-data">Откуда берутся цифры</h2><span>вручную не вводится ничего</span></div>
+  <div class="pipe" data-od-id="pipe-data">
+    <div class="p">
+      <div class="eyebrow">Источник</div>
+      <h3>Разговор</h3>
+      <p>Телефония или аудио-бейдж на офлайн-точке. Запись уходит в обработку.</p>
+    </div>
+    <div class="p">
+      <div class="eyebrow">Обработка</div>
+      <h3>Аналитика звонков</h3>
+      <p>Оценки пяти этапов, чеклист, стоп-фразы, комбо, резюме, тональность, цитаты с таймкодами.</p>
+    </div>
+    <div class="p">
+      <div class="eyebrow">Обработка</div>
+      <h3>CRM (AMO)</h3>
+      <p>Суммы сделок по потокам вход / апсейл / исход, статусы, план дня.</p>
+    </div>
+    <div class="p">
+      <div class="eyebrow">Расчёт на бэкенде</div>
+      <h3>Очки, ставки, баллы</h3>
+      <p>Формулы считаются на сервере. Клиент дублирует только превью в инструменте «Цель».</p>
+    </div>
+    <div class="p">
+      <div class="eyebrow">Экраны</div>
+      <h3>Что видит человек</h3>
+      <p>Менеджер — свои звонки, очки, навыки, доход, место. Руководитель — алерты по команде.</p>
+    </div>
+  </div>
+
+  <!-- ЖИЗНЕННЫЙ ЦИКЛ ОЧКОВ -->
+  <div class="sec"><h2 data-od-id="h-points">Жизненный цикл очков</h2><span>ключевой инвариант системы</span></div>
+  <div class="grid2" data-od-id="grid-points">
+    <div class="card">
+      <h3>Одно начисление — две ветки</h3>
+      <div class="chain" style="margin-top:14px">
+        <span class="c on">58 очков за звонок</span>
+        <span class="ar">→</span>
+        <span class="c blue">XP</span>
+        <span class="ar">+</span>
+        <span class="c">Баланс</span>
+      </div>
+      <ul>
+        <li><b>XP</b> растёт всегда и только вверх, определяет уровень, не тратится никогда.</li>
+        <li><b>Баланс</b> — те же очки, но их можно потратить в магазине.</li>
+        <li><b>Уровень</b> открывает товары и множит стрики, при тратах не падает.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Что происходит с балансом</h3>
+      <div class="chain" style="margin-top:14px">
+        <span class="c">Активный</span>
+        <span class="ar">— квест →</span>
+        <span class="c on">Заморожен</span>
+        <span class="ar">— условие →</span>
+        <span class="c">Активный</span>
+        <span class="ar">— покупка →</span>
+        <span class="c blue">Списан</span>
+      </div>
+      <ul>
+        <li>Квест <b>не даёт новых очков</b> — он блокирует уже заработанные.</li>
+        <li>Сумма «активный + замороженный» при взятии квеста <b>не меняется</b>.</li>
+        <li>Покупка списывает только активную часть, <b>XP не трогает</b>.</li>
+        <li>Признание идёт <b>только в баланс</b> — рейтинг накрутить нельзя.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Новые очки помимо звонков</h3>
+      <ul>
+        <li><b>Стрики</b> — чистая речь +10/д, оценка ≥ 7 +15/д, комбо-серия +12/д, активность +8/д, ×множитель уровня.</li>
+        <li><b>Признание</b> — +10 получателю, +5 отправителю; не более 3 в день, одного человека нельзя дважды.</li>
+        <li>Больше <b>ниоткуда</b>. Ни руководитель, ни администратор не начисляют очки вручную.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Что очков не даёт и не снимает</h3>
+      <ul>
+        <li><b>Алерты руководителю</b> — манипулятивный приём, стоп-фразы, проседание закрытия. Повод для разговора, не наказание.</li>
+        <li><b>Манипулятивные приёмы</b> очков не приносят — уходят в алерты.</li>
+        <li><b>Материальные награды</b> живут отдельно от баланса: они начисляются деньгами через бонусы.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot" data-od-id="foot">
+    <p class="small muted" style="max-width:56ch">
+      Схема описывает прототип в этом проекте. Требования, состояния экранов и критерии приёмки —
+      в отдельном документе. Интерфейс — пример визуализации; финальные экраны собираются
+      по работе бизнес-аналитика под менеджеров заказчика.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn" href="index.html">К прототипу</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* --- Узлы: x/y — левый верхний угол в логических координатах полотна ----- */
+  var NODES = [
+    { id:'login',       n:'00', t:'Вход',            d:'логин → пароль → выбор роли',        x:20,   y:380, role:'both', kind:'entry', file:'screens/login.html' },
+
+    { id:'dashboard',   n:'01', t:'Главная',         d:'план дня, пульс, заработок, квест', x:250,  y:90,  role:'rep',  kind:'hub',  file:'screens/dashboard.html' },
+    { id:'calls',       n:'02', t:'Звонки',          d:'лента дня, 5 фильтров',             x:250,  y:250, role:'rep',  kind:'hub',  file:'screens/calls.html' },
+    { id:'earnings',    n:'09', t:'Заработок',       d:'потоки, ступени, бонусы',           x:250,  y:410, role:'rep',  kind:'hub',  file:'screens/earnings.html' },
+    { id:'leaderboard', n:'11', t:'Рейтинг',         d:'прирост к себе, лиги',              x:250,  y:570, role:'rep',  kind:'hub',  file:'screens/leaderboard.html' },
+    { id:'profile',     n:'08', t:'Профиль',         d:'уровень, серия, стрики, награды',   x:250,  y:760, role:'rep',  kind:'',     file:'screens/profile.html' },
+    { id:'team',        n:'14', t:'Тренерская зона', d:'вкладки сотрудников, алерты',       x:250,  y:930, role:'lead', kind:'lead', file:'screens/team.html' },
+
+    { id:'metrics',     n:'05', t:'Метрики',         d:'воронка, потери, я и команда',      x:520,  y:40,  role:'rep',  kind:'',     file:'screens/metrics.html' },
+    { id:'calldetail',  n:'03', t:'Разбор звонка',   d:'цитата, таймкод, рекомендация',     x:520,  y:210, role:'both', kind:'',     file:'screens/call-detail.html' },
+    { id:'goal',        n:'10', t:'Цель',            d:'ходы до следующей ступени',         x:520,  y:410, role:'rep',  kind:'',     file:'screens/goal.html' },
+    { id:'kudos',       n:'12', t:'Признание',       d:'+10 коллеге, +5 себе',              x:520,  y:650, role:'rep',  kind:'',     file:'screens/kudos.html' },
+    { id:'shop',        n:'13', t:'Магазин',         d:'уровень — пропуск, баланс — валюта',x:520,  y:810, role:'rep',  kind:'',     file:'screens/shop.html' },
+
+    { id:'skills',      n:'06', t:'Дерево навыков',  d:'пять этапов, слабый узел',          x:790,  y:40,  role:'rep',  kind:'',     file:'screens/skills.html' },
+    { id:'points',      n:'04', t:'Журнал очков',    d:'этапы +30, бонусы +28, итог 58',    x:790,  y:210, role:'both', kind:'',     file:'screens/points-log.html' },
+    { id:'quests',      n:'07', t:'Квесты',          d:'заморозка баланса под условие',     x:790,  y:400, role:'rep',  kind:'',     file:'screens/quests.html' },
+
+    { id:'sh-quest',    n:'',   t:'Взять квест',     d:'заморозится 500',                   x:1010, y:410, role:'rep',  kind:'sheet' },
+    { id:'sh-kudos',    n:'',   t:'Отметить коллегу',d:'кому · за что · комментарий',       x:770,  y:655, role:'rep',  kind:'sheet' },
+    { id:'sh-buy',      n:'',   t:'Подтвердить покупку', d:'цена · баланс · останется',     x:770,  y:815, role:'rep',  kind:'sheet' }
+  ];
+
+  /* --- Связи --------------------------------------------------------------- */
+  var EDGES = [
+    { f:'login', t:'dashboard', type:'role', l:'менеджер' },
+    { f:'login', t:'team',      type:'role', l:'руководитель' },
+
+    { f:'dashboard', t:'metrics',    l:'тап по метрике' },
+    { f:'dashboard', t:'calldetail', l:'разбери сегодня' },
+    { f:'dashboard', t:'goal',       l:'посчитать цель' },
+    { f:'dashboard', t:'quests',     l:'активный квест' },
+    { f:'dashboard', t:'profile',    l:'аватар' },
+
+    { f:'calls',      t:'calldetail', l:'карточка звонка' },
+    { f:'calldetail', t:'points',     l:'за что 58 очков' },
+    { f:'calldetail', t:'skills',     l:'навык «Закрытие»' },
+
+    { f:'metrics', t:'skills', l:'то же по навыкам' },
+    { f:'skills',  t:'quests', l:'сделать квестом' },
+    { f:'skills',  t:'calls',  l:'звонки с просадкой' },
+
+    { f:'earnings',    t:'goal',    l:'цель месяца' },
+    { f:'leaderboard', t:'profile', l:'аватар' },
+
+    { f:'profile', t:'kudos',  l:'лента признания' },
+    { f:'profile', t:'shop',   l:'магазин' },
+    { f:'profile', t:'quests', l:'заморожено' },
+
+    { f:'team', t:'calldetail', l:'открыть звонок' },
+    { f:'team', t:'metrics',    l:'метрики сотрудника' },
+
+    { f:'quests', t:'sh-quest', type:'action' },
+    { f:'kudos',  t:'sh-kudos', type:'action' },
+    { f:'shop',   t:'sh-buy',   type:'action' }
+  ];
+
+  /* Экраны таб-бара — соединяются рельсом, а не отдельными стрелками */
+  var TABS = ['dashboard', 'calls', 'earnings', 'leaderboard'];
+
+  var byId = {};
+  NODES.forEach(function (n) { byId[n.id] = n; });
+
+  var canvas = document.getElementById('canvas');
+  var svg = document.getElementById('edges');
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  /* --- Отрисовка узлов ----------------------------------------------------- */
+  NODES.forEach(function (n) {
+    var el = document.createElement(n.file ? 'a' : 'div');
+    el.className = 'node' + (n.kind ? ' ' + n.kind : '');
+    el.style.left = n.x + 'px';
+    el.style.top = n.y + 'px';
+    el.id = 'node-' + n.id;
+    el.setAttribute('data-node', n.id);
+    el.setAttribute('data-od-id', 'node-' + n.id);
+    if (n.file) { el.href = n.file; el.target = '_blank'; el.rel = 'noopener'; }
+    el.innerHTML =
+      (n.n ? '<div class="n">' + n.n + '</div>' : '<div class="n">диалог</div>') +
+      '<div class="t">' + n.t + '</div>' +
+      '<div class="d">' + n.d + '</div>';
+    canvas.appendChild(el);
+    n.el = el;
+    n.w = n.kind === 'sheet' ? 154 : 184;
+  });
+
+  /* высота узла известна только после верстки */
+  NODES.forEach(function (n) { n.h = n.el.offsetHeight; });
+
+  /* --- Рельс таб-бара ------------------------------------------------------ */
+  (function () {
+    var first = byId[TABS[0]], last = byId[TABS[TABS.length - 1]];
+    var rail = document.getElementById('rail');
+    var top = first.y + first.h / 2;
+    var bottom = last.y + last.h / 2;
+    rail.style.left = (first.x - 34) + 'px';
+    rail.style.top = top + 'px';
+    rail.style.width = '34px';
+    rail.style.height = (bottom - top) + 'px';
+    var tag = document.getElementById('rail-tag');
+    tag.style.left = (first.x - 52) + 'px';
+    tag.style.top = (top + (bottom - top) / 2 - 34) + 'px';
+  })();
+
+  /* --- Геометрия связей -----------------------------------------------------
+     Кривая строится по якорям, затем маршрут проверяется на пересечения с
+     чужими карточками. Если линия идёт сквозь узел — контрольные точки
+     сдвигаются в сторону, пока коридор не найдётся. Схема сама себя чинит
+     при любой перестановке узлов.
+     ------------------------------------------------------------------------ */
+  var SIDES = {
+    r: function (n) { return { x: n.x + n.w, y: n.y + n.h / 2 }; },
+    l: function (n) { return { x: n.x,        y: n.y + n.h / 2 }; },
+    t: function (n) { return { x: n.x + n.w / 2, y: n.y }; },
+    b: function (n) { return { x: n.x + n.w / 2, y: n.y + n.h }; }
+  };
+  var DIRS = { r: [1, 0], l: [-1, 0], t: [0, -1], b: [0, 1] };
+  var SIDE_KEYS = ['r', 'l', 't', 'b'];
+
+  /* Естественная пара сторон по взаимному положению карточек */
+  function naturalSides(a, b) {
+    var ac = { x: a.x + a.w / 2, y: a.y + a.h / 2 };
+    var bc = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    var gapR = b.x - (a.x + a.w), gapL = a.x - (b.x + b.w);
+    var gap = Math.max(gapR, gapL);
+    var vert = Math.abs(bc.y - ac.y);
+    if (gap > 30 && gap > vert * 0.22) return gapR >= gapL ? ['r', 'l'] : ['l', 'r'];
+    return bc.y > ac.y ? ['b', 't'] : ['t', 'b'];
+  }
+
+  function cubic(p0, c1, c2, p3, t) {
+    var m = 1 - t;
+    return {
+      x: m*m*m*p0.x + 3*m*m*t*c1.x + 3*m*t*t*c2.x + t*t*t*p3.x,
+      y: m*m*m*p0.y + 3*m*m*t*c1.y + 3*m*t*t*c2.y + t*t*t*p3.y
+    };
+  }
+
+  function collisions(p0, c1, c2, p3, boxes) {
+    var hits = 0;
+    for (var i = 2; i < 24; i++) {
+      var q = cubic(p0, c1, c2, p3, i / 25);
+      for (var j = 0; j < boxes.length; j++) {
+        var b = boxes[j];
+        if (q.x > b.x && q.x < b.x + b.w && q.y > b.y && q.y < b.y + b.h) { hits++; break; }
+      }
+    }
+    return hits;
+  }
+
+  var OFFSETS = [0, -90, 90, -180, 180, -270, 270, -360, 360];
+
+  function route(a, b) {
+    var boxes = NODES
+      .filter(function (n) { return n.id !== a.id && n.id !== b.id; })
+      .map(function (n) { return { x: n.x - 8, y: n.y - 8, w: n.w + 16, h: n.h + 16 }; });
+
+    var nat = naturalSides(a, b);
+    var best = null;
+
+    function tryPair(sa, sb, kMul) {
+      var s = SIDES[sa](a), e = SIDES[sb](b);
+      var da = DIRS[sa], db = DIRS[sb];
+      /* якорь обязан смотреть в сторону цели, иначе связь читается как петля */
+      if ((e.x - s.x) * da[0] + (e.y - s.y) * da[1] < -24) return false;
+      if ((s.x - e.x) * db[0] + (s.y - e.y) * db[1] < -24) return false;
+
+      var dist = Math.hypot(e.x - s.x, e.y - s.y);
+      var k = Math.max(45, Math.min(160, dist * 0.4)) * kMul;
+      var pa = [-da[1], da[0]], pb = [-db[1], db[0]];
+
+      for (var i = 0; i < OFFSETS.length; i++) {
+        for (var j = 0; j < OFFSETS.length; j++) {
+          var o1 = OFFSETS[i], o2 = OFFSETS[j];
+          var c1 = { x: s.x + da[0] * k + pa[0] * o1, y: s.y + da[1] * k + pa[1] * o1 };
+          var c2 = { x: e.x + db[0] * k + pb[0] * o2, y: e.y + db[1] * k + pb[1] * o2 };
+          var h = collisions(s, c1, c2, e, boxes);
+          var cost = h * 1000 + Math.abs(o1) + Math.abs(o2);
+          if (!best || cost < best.cost) best = { cost: cost, h: h, s: s, e: e, c1: c1, c2: c2 };
+          if (h === 0) return true;
+        }
+      }
+      return false;
+    }
+
+    /* Ступень 1 — естественные стороны. Большинство связей решается здесь. */
+    if (tryPair(nat[0], nat[1], 1)) return best;
+
+    /* Ступень 2 — перебор всех осмысленных пар сторон, затем с длинным плечом. */
+    for (var m = 0; m < 2; m++) {
+      for (var x = 0; x < SIDE_KEYS.length; x++) {
+        for (var y = 0; y < SIDE_KEYS.length; y++) {
+          if (tryPair(SIDE_KEYS[x], SIDE_KEYS[y], m ? 1.9 : 1)) return best;
+        }
+      }
+    }
+    return best;
+  }
+
+  function pathOf(r) {
+    return 'M' + r.s.x.toFixed(1) + ' ' + r.s.y.toFixed(1) +
+           ' C' + r.c1.x.toFixed(1) + ' ' + r.c1.y.toFixed(1) +
+           ' ' + r.c2.x.toFixed(1) + ' ' + r.c2.y.toFixed(1) +
+           ' ' + r.e.x.toFixed(1) + ' ' + r.e.y.toFixed(1);
+  }
+
+  /* Наконечник строится по касательной в конце кривой, а не по якорю —
+     иначе при обходе узла стрелка смотрит не туда. */
+  function arrowOf(r) {
+    var near = cubic(r.s, r.c1, r.c2, r.e, 0.965);
+    var vx = r.e.x - near.x, vy = r.e.y - near.y;
+    var len = Math.sqrt(vx * vx + vy * vy) || 1;
+    vx /= len; vy /= len;
+    var px = -vy, py = vx;
+    var back = 9, half = 4.6;
+    var bx = r.e.x - vx * back, by = r.e.y - vy * back;
+    return r.e.x.toFixed(1) + ',' + r.e.y.toFixed(1) + ' ' +
+           (bx + px * half).toFixed(1) + ',' + (by + py * half).toFixed(1) + ' ' +
+           (bx - px * half).toFixed(1) + ',' + (by - py * half).toFixed(1);
+  }
+
+  EDGES.forEach(function (e, i) {
+    var a = byId[e.f], b = byId[e.t];
+    var r = route(a, b);
+
+    var el = document.createElementNS(SVGNS, 'path');
+    el.setAttribute('d', pathOf(r));
+    el.setAttribute('class', e.type || 'nav');
+    el.setAttribute('data-edge', i);
+    svg.appendChild(el);
+
+    var ar = document.createElementNS(SVGNS, 'polygon');
+    ar.setAttribute('points', arrowOf(r));
+    ar.setAttribute('class', 'arrow');
+    ar.setAttribute('data-edge', i);
+    svg.appendChild(ar);
+
+    if (e.l) {
+      var mid = cubic(r.s, r.c1, r.c2, r.e, 0.5);
+      var tx = document.createElementNS(SVGNS, 'text');
+      tx.setAttribute('x', mid.x.toFixed(1));
+      tx.setAttribute('y', (mid.y - 7).toFixed(1));
+      tx.setAttribute('text-anchor', 'middle');
+      tx.setAttribute('data-edge', i);
+      tx.textContent = e.l;
+      svg.appendChild(tx);
+    }
+  });
+
+  /* --- Подсветка ----------------------------------------------------------- */
+  var pinned = null;
+
+  function highlight(id) {
+    if (!id) { clearHi(); return; }
+    var keep = { };
+    keep[id] = true;
+    var edgeIdx = {};
+    EDGES.forEach(function (e, i) {
+      if (e.f === id || e.t === id) { keep[e.f] = true; keep[e.t] = true; edgeIdx[i] = true; }
+    });
+    if (TABS.indexOf(id) !== -1) TABS.forEach(function (t) { keep[t] = true; });
+
+    NODES.forEach(function (n) {
+      n.el.classList.toggle('dim', !keep[n.id]);
+      n.el.classList.toggle('hot', n.id === id);
+    });
+    svg.querySelectorAll('[data-edge]').forEach(function (el) {
+      var on = edgeIdx[el.getAttribute('data-edge')];
+      el.classList.toggle('dim', !on);
+      if (el.tagName === 'path') el.style.stroke = on ? 'var(--accent)' : '';
+      if (el.tagName === 'polygon') el.style.fill = on ? 'var(--accent)' : '';
+    });
+  }
+
+  function clearHi() {
+    NODES.forEach(function (n) { n.el.classList.remove('dim', 'hot'); });
+    svg.querySelectorAll('[data-edge]').forEach(function (el) {
+      el.classList.remove('dim');
+      el.style.stroke = '';
+      el.style.fill = '';
+    });
+    applyRole(currentRole);
+  }
+
+  NODES.forEach(function (n) {
+    n.el.addEventListener('mouseenter', function () { if (!pinned) highlight(n.id); });
+    n.el.addEventListener('mouseleave', function () { if (!pinned) clearHi(); });
+    n.el.addEventListener('click', function (ev) {
+      /* На тач-устройствах первый тап подсвечивает, второй открывает экран */
+      if (window.matchMedia('(hover: none)').matches && pinned !== n.id) {
+        ev.preventDefault();
+        pinned = n.id;
+        highlight(n.id);
+      }
+    });
+  });
+
+  document.getElementById('viewport').addEventListener('click', function (e) {
+    if (!e.target.closest('.node')) { pinned = null; clearHi(); }
+  });
+  document.getElementById('reset').addEventListener('click', function () { pinned = null; clearHi(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { pinned = null; clearHi(); }
+  });
+
+  /* --- Фильтр по роли ------------------------------------------------------ */
+  var currentRole = 'all';
+
+  function applyRole(role) {
+    currentRole = role;
+    NODES.forEach(function (n) {
+      var show = role === 'all' || n.role === 'both' || n.role === role;
+      n.el.style.opacity = show ? '' : '.18';
+      n.el.style.pointerEvents = show ? '' : 'none';
+    });
+    svg.querySelectorAll('[data-edge]').forEach(function (el) {
+      var e = EDGES[+el.getAttribute('data-edge')];
+      var a = byId[e.f], b = byId[e.t];
+      var vis = role === 'all' ||
+        ((a.role === 'both' || a.role === role) && (b.role === 'both' || b.role === role));
+      el.style.opacity = vis ? '' : '.12';
+    });
+    var railVis = role !== 'lead';
+    document.getElementById('rail').style.opacity = railVis ? '' : '.18';
+    document.getElementById('rail-tag').style.opacity = railVis ? '' : '.18';
+  }
+
+  document.getElementById('role').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', String(x === b));
+    });
+    pinned = null;
+    NODES.forEach(function (n) { n.el.classList.remove('dim', 'hot'); });
+    svg.querySelectorAll('[data-edge]').forEach(function (el) {
+      el.classList.remove('dim'); el.style.stroke = ''; el.style.fill = '';
+    });
+    applyRole(b.getAttribute('data-value'));
+  });
+
+  /* --- Масштаб -------------------------------------------------------------- */
+  var z = 1;
+  var STEPS = [0.4, 0.5, 0.6, 0.75, 0.9, 1, 1.15, 1.35];
+
+  function setZoom(v) {
+    z = Math.max(STEPS[0], Math.min(STEPS[STEPS.length - 1], v));
+    document.documentElement.style.setProperty('--z', z);
+    document.getElementById('zlvl').textContent = Math.round(z * 100) + '%';
+  }
+  function step(dir) {
+    var i = 0;
+    for (var k = 0; k < STEPS.length; k++) if (STEPS[k] <= z + 0.001) i = k;
+    setZoom(STEPS[Math.max(0, Math.min(STEPS.length - 1, i + dir))]);
+  }
+  function fit() {
+    var w = document.getElementById('viewport').clientWidth - 8;
+    setZoom(Math.max(0.4, Math.min(1, w / 1180)));
+  }
+
+  document.getElementById('zin').addEventListener('click', function () { step(1); });
+  document.getElementById('zout').addEventListener('click', function () { step(-1); });
+  document.getElementById('zfit').addEventListener('click', fit);
+
+  /* На узком экране схема по умолчанию вписана, на широком — 100% */
+  if (window.innerWidth < 1240) fit(); else setZoom(1);
+})();
+</script>
+</body>
+</html>

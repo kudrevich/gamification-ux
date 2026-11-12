@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Материал компании — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .material-body{margin-top:14px}
+  .material-body h2{font-size:15px;margin-bottom:8px}
+  .material-body p + p{margin-top:10px}
+  .material-body ul,.material-body ol{padding-left:20px;margin-top:8px}
+  .material-body li{padding-left:3px;margin:8px 0}
+  .material-example{margin-top:14px;border-left:2px solid var(--accent);padding:4px 0 4px 12px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar" data-od-id="topbar-material">
+    <a class="iconbtn" href="quests.html" aria-label="Назад к квесту" data-od-id="btn-back-quests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Материалы компании</div>
+      <h1 class="sm">Закрытие сделки</h1>
+    </div>
+  </header>
+  <main data-od-id="main-material">
+    <section class="card material-body" id="material-content" aria-live="polite" data-od-id="material-content"></section>
+    <a class="btn ghost" href="quests.html" style="margin-top:14px" data-od-id="btn-return-quest">Вернуться к квесту</a>
+  </main>
+  <nav class="tabbar" data-tabbar="dashboard" data-od-id="tabbar"></nav>
+</div>
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var items = {
+    'next-step': {
+      title: 'Финальный этап сделки: как договориться о следующем шаге',
+      description: 'Закрытие звонка — это не обязательно получение оплаты. Важно завершить разговор ясной договорённостью, которая продвигает клиента к решению.',
+      body: '<h2>Структура договорённости</h2><ol><li>Назовите действие: что именно произойдёт дальше.</li><li>Зафиксируйте ответственного: кто делает следующий шаг.</li><li>Согласуйте срок и проверьте, что он удобен клиенту.</li></ol><p class="material-example">«Я отправлю расчёт сегодня до 17:00, а завтра в 12:00 наберу — обсудим вопросы. Подойдёт?»</p>'
+    },
+    'closing-checklist': {
+      title: 'Чек-лист закрытия звонка',
+      description: 'Перед завершением разговора проверьте, что у обеих сторон одинаковое понимание дальнейших действий.',
+      body: '<h2>Проверьте перед завершением</h2><ul><li>Понятно ли, какое решение принял клиент или что ему ещё нужно обдумать?</li><li>Назначен ли следующий шаг, а не только обещана отправка материалов?</li><li>Есть ли конкретные дата и время следующего контакта?</li><li>Понятно ли, кто за что отвечает?</li><li>Подтвердил ли клиент, что договорённость ему подходит?</li></ul>'
+    },
+    'closing-phrases': {
+      title: 'Сильные формулировки для фиксации договорённости',
+      description: 'Используйте вопросы и формулировки, которые помогают договориться о следующем действии без давления на клиента.',
+      body: '<h2>Примеры фраз</h2><ul><li>«Что ещё важно прояснить, чтобы вы могли принять решение?»</li><li>«Давайте я отправлю расчёт сегодня, а завтра в 12:00 вернусь к вам с ответами на вопросы. Подойдёт?»</li><li>«Правильно зафиксировал: вы обсуждаете предложение с коллегой сегодня, а мы созваниваемся в четверг?»</li><li>«Если к этому времени появятся вопросы, что удобнее — короткий звонок или сообщение?»</li></ul>'
+    }
+  };
+  var id = new URLSearchParams(location.search).get('id');
+  var item = items[id];
+  var box = document.getElementById('material-content');
+  if (!item) {
+    box.innerHTML = '<h2>Материал не найден</h2><p class="small muted">Выберите материал в разделе активного квеста.</p>';
+    return;
+  }
+  box.innerHTML = '<div class="eyebrow">Параметр · Закрытие</div><h2 style="font-size:20px;margin-top:8px">' + item.title + '</h2><p class="small muted" style="margin-top:8px">' + item.description + '</p>' + item.body;
+})();
+</script>
+</body>
+</html>

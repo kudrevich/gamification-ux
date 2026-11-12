@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Вход — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .brand{width:52px;height:52px;border-radius:16px;background:var(--grad);box-shadow:var(--shadow-accent);
+         display:grid;place-items:center;color:#ffffff;font-weight:600;font-size:19px;letter-spacing:-.03em}
+  .step{display:none}
+  .step.on{display:block}
+
+  .pw{position:relative}
+  .pw .input{padding-right:56px}
+  .pw .eye{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:44px;height:44px;border-radius:var(--r-pill);display:grid;place-items:center;color:var(--muted);
+  }
+  .pw .eye svg{width:20px;height:20px}
+
+  .input.bad{border-color:var(--accent);background:var(--bg)}
+  .fielderr{color:var(--accent);font-size:12.5px;margin-top:6px;min-height:16px}
+  .formerr{
+    color:var(--accent);font-size:13px;line-height:1.4;background:color-mix(in srgb,#5a28ff 8%,transparent);
+    border-radius:var(--r-sm);padding:11px 13px;margin-bottom:14px;display:none;
+  }
+  .formerr.on{display:block}
+
+  .remember{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer;font-size:14px}
+  .remember input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+
+  .rules{list-style:none;margin:12px 0 0;padding:0}
+  .rules li{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);padding:5px 0}
+  .rules li .mk{width:16px;height:16px;flex:none;color:var(--border)}
+  .rules li.ok{color:var(--accent-2)}
+  .rules li.ok .mk{color:var(--accent-2)}
+
+  .role{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;
+    border:1px solid var(--border);border-radius:var(--r-md);background:var(--bg);min-height:48px;
+  }
+  .role:active{background:var(--surface)}
+  .hint{font-size:12.5px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.45}
+  .linkbtn{color:var(--accent);font-weight:600;font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <main class="no-tabbar" data-od-id="main-login" style="padding-top:calc(env(safe-area-inset-top) + 44px)">
+
+    <div class="row" style="gap:12px">
+      <div class="brand">М</div>
+      <div>
+        <div class="eyebrow">Отдел продаж</div>
+        <h1 style="font-size:19px">Личные показатели</h1>
+      </div>
+    </div>
+
+    <!-- Шаг 1: логин и пароль -->
+    <section class="step on" id="step-login" data-od-id="step-login">
+      <h2 style="font-size:24px;margin-top:34px">Вход</h2>
+      <p class="muted" style="margin-top:8px;font-size:14px">
+        Логин и пароль выдаёт руководитель отдела. Своей регистрации нет.
+      </p>
+
+      <div class="formerr" id="form-err" role="alert"></div>
+
+      <form id="login-form" style="margin-top:20px" novalidate>
+        <label class="field">
+          <span class="lb">Логин или рабочая почта</span>
+          <input class="input" type="text" id="login" name="username" autocomplete="username"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 placeholder="ivan.k" data-od-id="input-login">
+          <span class="fielderr" id="login-err"></span>
+        </label>
+
+        <label class="field">
+          <span class="lb">Пароль</span>
+          <span class="pw">
+            <input class="input" type="password" id="password" name="password" autocomplete="current-password"
+                   placeholder="••••••••" data-od-id="input-password">
+            <button type="button" class="eye" id="toggle-pw" aria-label="Показать пароль" aria-pressed="false" data-od-id="btn-toggle-pw">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" id="eye-icon">
+                <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </span>
+          <span class="fielderr" id="password-err"></span>
+        </label>
+
+        <label class="remember" data-od-id="check-remember">
+          <input type="checkbox" id="remember" checked>
+          <span>Запомнить меня на этом устройстве</span>
+        </label>
+
+        <button class="btn accent" type="submit" id="submit" style="margin-top:14px" data-od-id="btn-login">Войти</button>
+      </form>
+
+      <div class="center" style="margin-top:16px">
+        <button class="linkbtn" data-sheet-open="reset" data-od-id="btn-forgot">Забыли пароль?</button>
+      </div>
+
+      <p class="hint" data-od-id="hint-demo">
+        Для примера: <span class="mono">ivan.k</span> / <span class="mono">demo1234</span> — менеджер,
+        <span class="mono">rop</span> / <span class="mono">demo1234</span> — руководитель,
+        <span class="mono">new.user</span> / <span class="mono">temp1234</span> — первый вход.
+      </p>
+    </section>
+
+    <!-- Шаг 2: смена временного пароля -->
+    <section class="step" id="step-change" data-od-id="step-change">
+      <h2 style="font-size:24px;margin-top:34px">Задайте свой пароль</h2>
+      <p class="muted" style="margin-top:8px;font-size:14px">
+        Вы вошли по временному паролю. Пока не смените его, экраны недоступны.
+      </p>
+
+      <form id="change-form" style="margin-top:20px" novalidate>
+        <label class="field">
+          <span class="lb">Новый пароль</span>
+          <span class="pw">
+            <input class="input" type="password" id="pw1" autocomplete="new-password" placeholder="••••••••" data-od-id="input-pw1">
+            <button type="button" class="eye" id="toggle-pw1" aria-label="Показать пароль" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </span>
+        </label>
+
+        <ul class="rules" id="rules" data-od-id="password-rules">
+          <li data-rule="len"><svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg>не короче 8 символов</li>
+          <li data-rule="letter"><svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg>есть буквы</li>
+          <li data-rule="digit"><svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg>есть цифры</li>
+          <li data-rule="common"><svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg>не из списка частых паролей</li>
+        </ul>
+
+        <label class="field" style="margin-top:18px">
+          <span class="lb">Повторите пароль</span>
+          <input class="input" type="password" id="pw2" autocomplete="new-password" placeholder="••••••••" data-od-id="input-pw2">
+          <span class="fielderr" id="pw2-err"></span>
+        </label>
+
+        <button class="btn accent" type="submit" id="save-pw" disabled data-od-id="btn-save-pw">Сохранить и войти</button>
+      </form>
+    </section>
+
+    <!-- Шаг 3: выбор роли -->
+    <section class="step" id="step-role" data-od-id="step-role">
+      <h2 style="font-size:24px;margin-top:34px">Как войти</h2>
+      <p class="muted" style="margin-top:8px;font-size:14px">У вашей учётной записи две роли.</p>
+
+      <div class="stack" style="margin-top:24px">
+        <a class="role" href="dashboard.html" data-od-id="role-rep">
+          <span class="avatar" style="width:40px;height:40px;font-size:13px">ИК</span>
+          <span style="flex:1">
+            <span style="font-weight:600;font-size:15px;display:block">Менеджер</span>
+            <span class="small muted">свои звонки, очки, доход и рейтинг</span>
+          </span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <a class="role" href="team.html" data-od-id="role-lead">
+          <span class="avatar" style="width:40px;height:40px;font-size:13px;background:var(--surface);color:var(--muted);box-shadow:none">РП</span>
+          <span style="flex:1">
+            <span style="font-weight:600;font-size:15px;display:block">Руководитель</span>
+            <span class="small muted">команда, алерты, тренерская зона</span>
+          </span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Восстановление пароля -->
+<div class="sheet" id="reset" role="dialog" aria-modal="true" aria-labelledby="reset-t">
+  <div class="scrim"></div>
+  <div class="panel">
+    <div class="grab"></div>
+    <h3 id="reset-t">Восстановление пароля</h3>
+    <p class="small muted" style="margin-top:4px">
+      Пришлём ссылку на рабочую почту. Ссылка одноразовая и живёт 30 минут.
+    </p>
+
+    <form id="reset-form" style="margin-top:18px" novalidate>
+      <label class="field">
+        <span class="lb">Логин или рабочая почта</span>
+        <input class="input" type="text" id="reset-login" autocapitalize="none" autocorrect="off"
+               spellcheck="false" placeholder="ivan.k" data-od-id="input-reset">
+        <span class="fielderr" id="reset-err"></span>
+      </label>
+      <button class="btn accent" type="submit" data-od-id="btn-reset-send">Отправить ссылку</button>
+      <button class="btn ghost" type="button" style="margin-top:10px" data-sheet-close="reset" data-od-id="btn-reset-cancel">Отмена</button>
+    </form>
+
+    <p class="small muted" style="margin-top:16px">
+      Рабочей почты нет — пароль сбрасывает руководитель отдела, вы получите новый временный.
+    </p>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* Демонстрационные учётные записи. В проде проверка целиком на бэкенде:
+     клиент отправляет пару в POST /api/auth/login и разбирает только ответ. */
+  var ACCOUNTS = {
+    'ivan.k':   { pw: 'demo1234', roles: ['rep'],          temp: false },
+    'rop':      { pw: 'demo1234', roles: ['rep', 'lead'],  temp: false },
+    'new.user': { pw: 'temp1234', roles: ['rep'],          temp: true  }
+  };
+  var COMMON = ['12345678', 'password', 'qwerty123', 'qwertyui', '11111111', 'password1', 'iloveyou'];
+
+  var MAX_TRIES = 5, LOCK_MS = 15 * 60 * 1000;
+  var LS = 'gamif.login.lock';
+
+  var stepLogin = document.getElementById('step-login');
+  var formErr = document.getElementById('form-err');
+  var loginInp = document.getElementById('login');
+  var pwInp = document.getElementById('password');
+  var submit = document.getElementById('submit');
+
+  var tries = 0, lockUntil = 0, lockTimer = null, account = null;
+
+  /* Блокировка переживает перезагрузку — счётчик нельзя обнулить обновлением страницы.
+     В проде счётчик ведётся на сервере по паре «логин + IP», это лишь отражение состояния. */
+  try {
+    var saved = JSON.parse(localStorage.getItem(LS) || '{}');
+    tries = saved.tries || 0;
+    lockUntil = saved.until || 0;
+  } catch (e) {}
+
+  function persist() {
+    try { localStorage.setItem(LS, JSON.stringify({ tries: tries, until: lockUntil })); } catch (e) {}
+  }
+
+  function show(id) {
+    document.querySelectorAll('.step').forEach(function (s) { s.classList.toggle('on', s.id === id); });
+    window.scrollTo({ top: 0 });
+  }
+
+  function setFormErr(msg) {
+    formErr.textContent = msg || '';
+    formErr.classList.toggle('on', !!msg);
+  }
+
+  function setFieldErr(id, msg) {
+    document.getElementById(id + '-err').textContent = msg || '';
+    document.getElementById(id).classList.toggle('bad', !!msg);
+  }
+
+  /* --- Обратный отсчёт блокировки ----------------------------------------- */
+  function tickLock() {
+    var left = lockUntil - Date.now();
+    if (left <= 0) {
+      clearInterval(lockTimer); lockTimer = null;
+      lockUntil = 0; tries = 0; persist();
+      submit.disabled = false;
+      submit.textContent = 'Войти';
+      setFormErr('');
+      return;
+    }
+    var m = Math.floor(left / 60000), s = Math.floor(left % 60000 / 1000);
+    submit.disabled = true;
+    submit.textContent = 'Заблокировано · ' + m + ':' + (s < 10 ? '0' : '') + s;
+    setFormErr('Слишком много неудачных попыток. Вход заблокирован на 15 минут.');
+  }
+
+  function startLock() {
+    lockUntil = Date.now() + LOCK_MS;
+    persist();
+    if (!lockTimer) lockTimer = setInterval(tickLock, 1000);
+    tickLock();
+  }
+
+  if (lockUntil > Date.now()) startLock();
+
+  /* --- Показать / скрыть пароль ------------------------------------------- */
+  function bindEye(btnId, inpId) {
+    var btn = document.getElementById(btnId), inp = document.getElementById(inpId);
+    btn.addEventListener('click', function () {
+      var shown = inp.type === 'text';
+      var pos = inp.selectionStart;
+      inp.type = shown ? 'password' : 'text';
+      btn.setAttribute('aria-pressed', String(!shown));
+      btn.setAttribute('aria-label', shown ? 'Показать пароль' : 'Скрыть пароль');
+      try { inp.setSelectionRange(pos, pos); } catch (e) {}
+      inp.focus();
+    });
+  }
+  bindEye('toggle-pw', 'password');
+  bindEye('toggle-pw1', 'pw1');
+
+  loginInp.addEventListener('input', function () { setFieldErr('login', ''); setFormErr(''); });
+  pwInp.addEventListener('input', function () { setFieldErr('password', ''); setFormErr(''); });
+
+  /* --- Шаг 1: вход --------------------------------------------------------- */
+  document.getElementById('login-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (lockUntil > Date.now()) return;
+
+    var login = loginInp.value.trim().toLowerCase();
+    var pw = pwInp.value;
+    var bad = false;
+
+    if (!login) { setFieldErr('login', 'Введите логин'); bad = true; }
+    if (!pw) { setFieldErr('password', 'Введите пароль'); bad = true; }
+    if (bad) { (login ? pwInp : loginInp).focus(); return; }
+
+    var acc = ACCOUNTS[login];
+
+    /* Ответ не раскрывает, что именно неверно — логин или пароль */
+    if (!acc || acc.pw !== pw) {
+      tries++;
+      persist();
+      if (tries >= MAX_TRIES) { startLock(); return; }
+      var left = MAX_TRIES - tries;
+      setFormErr('Неверный логин или пароль.' + (tries >= 3 ? ' Осталось попыток: ' + left + '.' : ''));
+      pwInp.value = '';
+      pwInp.focus();
+      return;
+    }
+
+    tries = 0; lockUntil = 0; persist();
+    setFormErr('');
+    account = acc;
+
+    if (acc.temp) { show('step-change'); document.getElementById('pw1').focus(); return; }
+    finish();
+  });
+
+  function finish() {
+    if (account.roles.length > 1) { show('step-role'); return; }
+    location.href = account.roles[0] === 'lead' ? 'team.html' : 'dashboard.html';
+  }
+
+  /* --- Шаг 2: смена временного пароля -------------------------------------- */
+  var pw1 = document.getElementById('pw1'), pw2 = document.getElementById('pw2');
+  var savePw = document.getElementById('save-pw');
+
+  function checkRules(v) {
+    return {
+      len: v.length >= 8,
+      letter: /[a-zA-Zа-яА-Я]/.test(v),
+      digit: /\d/.test(v),
+      common: v.length > 0 && COMMON.indexOf(v.toLowerCase()) === -1
+    };
+  }
+
+  function paintRules() {
+    var r = checkRules(pw1.value);
+    var allOk = true;
+    document.querySelectorAll('#rules li').forEach(function (li) {
+      var ok = r[li.getAttribute('data-rule')];
+      li.classList.toggle('ok', !!ok);
+      if (!ok) allOk = false;
+    });
+    var match = pw2.value.length > 0 && pw1.value === pw2.value;
+    document.getElementById('pw2-err').textContent =
+      pw2.value.length > 0 && !match ? 'Пароли не совпадают' : '';
+    pw2.classList.toggle('bad', pw2.value.length > 0 && !match);
+    savePw.disabled = !(allOk && match);
+  }
+
+  pw1.addEventListener('input', paintRules);
+  pw2.addEventListener('input', paintRules);
+
+  document.getElementById('change-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (savePw.disabled) return;
+    account.temp = false;
+    App.toast('Пароль сохранён');
+    setTimeout(finish, 600);
+  });
+
+  /* --- Восстановление ------------------------------------------------------ */
+  document.getElementById('reset-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var v = document.getElementById('reset-login').value.trim();
+    if (!v) {
+      document.getElementById('reset-err').textContent = 'Введите логин или почту';
+      document.getElementById('reset-login').classList.add('bad');
+      return;
+    }
+    document.getElementById('reset-err').textContent = '';
+    document.getElementById('reset-login').classList.remove('bad');
+    App.closeSheet('reset');
+    /* Ответ одинаковый независимо от того, есть такой логин или нет —
+       иначе форму можно использовать для перебора учётных записей. */
+    App.toast('Если учётная запись существует, письмо отправлено');
+  });
+
+  document.getElementById('reset-login').addEventListener('input', function () {
+    document.getElementById('reset-err').textContent = '';
+    this.classList.remove('bad');
+  });
+})();
+</script>
+</body>
+</html>

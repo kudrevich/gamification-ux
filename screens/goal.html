@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Цель — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .move{
+    display:flex;align-items:flex-start;gap:12px;padding:14px 0;
+    border-bottom:1px solid var(--border);width:100%;text-align:left;min-height:48px;
+  }
+  .move:last-of-type{border-bottom:none}
+  .move .box{
+    width:24px;height:24px;flex:none;border-radius:8px;border:1.5px solid var(--border);
+    display:grid;place-items:center;margin-top:2px;color:transparent;
+  }
+  .move[aria-pressed="true"] .box{background:var(--accent);border-color:transparent;color:#ffffff}
+  .move .ttl2{font-size:14.5px;font-weight:600;line-height:1.3}
+  .move .sub2{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .move .eff{font-family:var(--mono);font-size:14px;font-weight:600;white-space:nowrap;color:var(--accent-2)}
+  .gap-bar{height:12px;border-radius:var(--r-pill);background:var(--surface);overflow:hidden;position:relative}
+  .gap-bar>i{display:block;height:100%;border-radius:var(--r-pill);background:var(--grad);transition:width .35s ease}
+  .gap-bar>u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-goal">
+    <a class="iconbtn" href="earnings.html" aria-label="Назад к заработку" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Не «сколько сделок», а «сколько ₽ до ступени»</div>
+      <h1 class="sm">Цель месяца</h1>
+    </div>
+  </header>
+
+  <main data-od-id="main-goal">
+
+    <!-- Цель -->
+    <section class="card" style="margin-top:14px" data-od-id="section-goal">
+      <label class="field" style="margin-bottom:0">
+        <span class="lb">Моя цель на месяц</span>
+        <input class="input mono" type="number" id="goal" inputmode="numeric" step="1000" min="0" value="60000">
+      </label>
+      <div class="between" style="margin-top:14px">
+        <span class="small muted">Сейчас начислено</span>
+        <span class="mono" id="now">42 250 ₽</span>
+      </div>
+      <div class="gap-bar" style="margin-top:10px"><i id="progress" style="width:70%"></i></div>
+      <div class="between" style="margin-top:12px">
+        <span class="small muted" id="gap-label">Разрыв</span>
+        <span class="big sm" id="gap">17 750 ₽</span>
+      </div>
+    </section>
+
+    <!-- Ходы -->
+    <div class="sec"><h2 data-od-id="h-moves">Что закроет разрыв</h2><span class="small muted">отметьте ходы</span></div>
+    <section class="card" id="moves" data-od-id="section-moves"></section>
+
+    <!-- Итог сценария -->
+    <section class="card hero" style="margin-top:14px" data-od-id="section-scenario">
+      <div class="eyebrow">Сценарий</div>
+      <div class="big xl" style="margin-top:6px" id="scenario">42 250 ₽</div>
+      <p class="small" style="margin-top:10px;opacity:.9" id="verdict">
+        Отметьте ходы — увидите, что именно доводит до цели.
+      </p>
+      <div class="bar on-dark" style="margin-top:14px"><i id="sbar" style="width:70%"></i></div>
+    </section>
+
+    <p class="note" style="margin-top:14px" data-od-id="note-method">
+      Пересчёт идёт по той же таблице ступеней, что и на экране «Заработок».
+      Дотянуть поток на 100 000 ₽ обычно выгоднее, чем закрыть несколько мелких сделок.
+    </p>
+
+    <button class="btn ghost" style="margin-top:22px" id="save" data-od-id="btn-save">Сохранить цель</button>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="earnings" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var S = App.state;
+
+  /* База берётся с экрана «Заработок» — один расчёт на два экрана */
+  var base = 42250;
+  try {
+    var stored = parseInt(sessionStorage.getItem('earnings.total') || '0', 10);
+    if (stored > 0) base = stored;
+  } catch (e) {}
+
+  var MOVES = [
+    { id: 'in',     title: 'Входящий поток 300 000 → 400 000 ₽', sub: 'ставка 4% → 5%',  eff: 8000 },
+    { id: 'upsell', title: 'Апсейл 200 000 → 300 000 ₽',          sub: 'ставка 5% → 6%',  eff: 8000 },
+    { id: 'out',    title: 'Исходящий 200 000 → 300 000 ₽',       sub: 'ставка 6% → 7%',  eff: 9000 },
+    { id: 'crm',    title: 'Отметить бонус «Ведение CRM»',        sub: 'чекбокс в заработке', eff: 4500 }
+  ];
+
+  var picked = {};
+  /* Если бонус CRM уже отмечен на экране заработка — ход недоступен, он в базе */
+  var crmTaken = !!S.bonuses.crm;
+
+  function goal() {
+    var v = parseInt(document.getElementById('goal').value || '0', 10);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function scenarioSum() {
+    return base + MOVES.reduce(function (s, m) { return s + (picked[m.id] ? m.eff : 0); }, 0);
+  }
+
+  function renderMoves() {
+    document.getElementById('moves').innerHTML = MOVES.map(function (m) {
+      var off = m.id === 'crm' && crmTaken;
+      return '<button class="move" data-m="' + m.id + '" aria-pressed="' + (!!picked[m.id]) + '"' +
+        (off ? ' disabled' : '') + ' data-od-id="move-' + m.id + '">' +
+        '<span class="box"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg></span>' +
+        '<span style="flex:1"><span class="ttl2">' + m.title + '</span>' +
+        '<span class="sub2">' + (off ? 'уже учтён в текущем начислении' : m.sub) + '</span></span>' +
+        '<span class="eff">+' + App.num(m.eff) + '</span></button>';
+    }).join('');
+
+    document.querySelectorAll('.move').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = this.getAttribute('data-m');
+        picked[id] = !picked[id];
+        this.setAttribute('aria-pressed', String(!!picked[id]));
+        paint();
+      });
+    });
+  }
+
+  function paint() {
+    var g = goal();
+    var s = scenarioSum();
+    var gapNow = g - base;
+    var gapLeft = g - s;
+
+    document.getElementById('now').textContent = App.money(base);
+    document.getElementById('gap').textContent = gapNow > 0 ? App.money(gapNow) : App.money(0);
+    document.getElementById('gap-label').textContent = gapNow > 0 ? 'Разрыв' : 'Цель уже закрыта';
+    document.getElementById('progress').style.width = Math.min(100, g ? base / g * 100 : 0) + '%';
+
+    document.getElementById('scenario').textContent = App.money(s);
+    document.getElementById('sbar').style.width = Math.min(100, g ? s / g * 100 : 0) + '%';
+
+    var v = document.getElementById('verdict');
+    if (!g) {
+      v.textContent = 'Задайте цель — покажу, какие ходы её закрывают.';
+    } else if (gapLeft <= 0) {
+      v.textContent = 'Цель закрыта с запасом ' + App.money(-gapLeft) + '. Отмеченные ходы дают ' +
+        App.money(s - base) + ' сверх текущего начисления.';
+    } else {
+      v.textContent = 'До цели не хватает ' + App.money(gapLeft) + '. Добавьте ещё один ход или скорректируйте цель.';
+    }
+  }
+
+  document.getElementById('goal').addEventListener('input', paint);
+
+  document.getElementById('save').addEventListener('click', function () {
+    S.goal = goal();
+    App.save();
+    App.toast('Цель ' + App.money(S.goal) + ' сохранена');
+  });
+
+  document.getElementById('goal').value = S.goal || 60000;
+  renderMoves();
+  paint();
+})();
+</script>
+</body>
+</html>

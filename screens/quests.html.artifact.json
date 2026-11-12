@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/quests.html",
+  "entry": "screens/quests.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-12T09:53:41.877Z",
+  "updatedAt": "2026-11-12T09:53:41.877Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

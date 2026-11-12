@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Звонки — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-calls">
+    <div class="ttl">
+      <div class="hi">Понедельник, 9 июля</div>
+      <h1 data-od-id="h-calls">Звонки</h1>
+    </div>
+    <a class="avatar" href="profile.html" aria-label="Профиль" data-od-id="link-profile">ИК</a>
+  </header>
+
+  <main data-od-id="main-calls">
+
+    <div class="scroller" id="filters" role="tablist" aria-label="Фильтр звонков" data-od-id="filters">
+      <button class="chip accent" role="tab" aria-selected="true" data-f="all" data-od-id="filter-all">Все <span class="n">27</span></button>
+      <button class="chip" role="tab" aria-selected="false" data-f="review" data-od-id="filter-review">Требуют разбора <span class="n">4</span></button>
+      <button class="chip" role="tab" aria-selected="false" data-f="deal" data-od-id="filter-deal">Сделки <span class="n">3</span></button>
+      <button class="chip" role="tab" aria-selected="false" data-f="callback" data-od-id="filter-callback">Перезвон <span class="n">9</span></button>
+      <button class="chip" role="tab" aria-selected="false" data-f="lost" data-od-id="filter-lost">Отказы <span class="n">6</span></button>
+    </div>
+
+    <div class="between" style="margin:2px 2px 10px">
+      <span class="small muted" id="count">27 звонков</span>
+      <span class="small muted mono" id="sum">+612 очков за день</span>
+    </div>
+
+    <section class="stack" id="list" data-od-id="section-call-list"></section>
+
+    <div id="more" style="margin-top:16px"></div>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="calls" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  /* Данные дня. status: deal | callback | lost; review — флаг «требует разбора» */
+  var CALLS = [
+    { id: 54118, t: '17:42', client: 'Ирина П. · входящий', dur: '6:04', score: 94, pts: 88, status: 'deal',  review: false, note: 'эталон закрытия — отработала цену' },
+    { id: 54117, t: '17:05', client: 'ИП Ковалёв',          dur: '3:18', score: 71, pts: 62, status: 'callback', review: false, note: 'перезвон в среду, интерес подтверждён' },
+    { id: 54115, t: '16:20', client: 'ООО «Ветразь»',        dur: '4:51', score: 58, pts: 58, status: 'lost',  review: true,  note: 'не назначен следующий шаг — лид остыл' },
+    { id: 54112, t: '15:47', client: 'Светлана Р.',          dur: '2:09', score: 44, pts: 31, status: 'lost',  review: true,  note: 'возражение по цене не отработано' },
+    { id: 54110, t: '15:02', client: 'ООО «Тайм»',           dur: '7:33', score: 82, pts: 79, status: 'deal',  review: false, note: 'апсейл принят, комбо предложено' },
+    { id: 54108, t: '14:26', client: 'Артём Б.',             dur: '3:55', score: 66, pts: 55, status: 'callback', review: false, note: 'ждёт КП до четверга' },
+    { id: 54105, t: '13:40', client: 'Марина Р.',            dur: '1:47', score: 39, pts: 24, status: 'lost',  review: true,  note: 'квалификация не проведена' },
+    { id: 54101, t: '12:55', client: 'ООО «Дельта»',         dur: '5:12', score: 77, pts: 71, status: 'callback', review: false, note: 'решение принимает не он — вышли на ЛПР' },
+    { id: 54098, t: '12:10', client: 'Ольга К.',             dur: '4:02', score: 63, pts: 52, status: 'callback', review: false, note: 'резюме не проведено' },
+    { id: 54094, t: '11:31', client: 'ИП Носов',             dur: '2:44', score: 51, pts: 40, status: 'lost',  review: true,  note: 'стоп-фраза в середине разговора' },
+    { id: 54090, t: '10:48', client: 'ООО «Ветер»',          dur: '8:07', score: 89, pts: 84, status: 'deal',  review: false, note: 'полный скрипт, три отработки возражений' },
+    { id: 54086, t: '10:12', client: 'Дмитрий С.',           dur: '3:31', score: 68, pts: 58, status: 'callback', review: false, note: 'перезвон после планёрки' }
+  ];
+
+  var MAP = {
+    deal:     { label: 'сделка',   cls: 'blue' },
+    callback: { label: 'перезвон', cls: '' },
+    lost:     { label: 'отказ',    cls: '' }
+  };
+
+  var active = 'all';
+  var shown = 8;
+
+  function match(c) {
+    if (active === 'all') return true;
+    if (active === 'review') return c.review;
+    return c.status === active;
+  }
+
+  function render() {
+    var rows = CALLS.filter(match);
+    var list = document.getElementById('list');
+    var more = document.getElementById('more');
+
+    document.getElementById('count').textContent =
+      rows.length + ' ' + plural(rows.length, ['звонок', 'звонка', 'звонков']);
+    document.getElementById('sum').textContent =
+      '+' + App.num(rows.reduce(function (s, c) { return s + c.pts; }, 0)) + ' очков';
+
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty"><b>Под этот фильтр звонков нет</b>' +
+        'Сбросьте фильтр или выберите другой день.</div>';
+      more.innerHTML = '';
+      return;
+    }
+
+    var slice = rows.slice(0, shown);
+    list.innerHTML = slice.map(function (c) {
+      var m = MAP[c.status];
+      return '<a class="card" href="call-detail.html?id=' + c.id + '" data-od-id="call-' + c.id + '">' +
+        '<div class="row">' +
+          '<div class="tag ' + (c.score >= 80 ? 'blue' : c.score < 60 ? 'win' : '') + '">' + c.score + '</div>' +
+          '<div class="body">' +
+            '<div class="title">' + c.client + '</div>' +
+            '<div class="sub">' + c.note + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="between" style="margin-top:11px">' +
+          '<span class="row" style="gap:6px">' +
+            '<span class="chip ' + m.cls + '">' + m.label + '</span>' +
+            (c.review ? '<span class="chip accent">разобрать</span>' : '') +
+          '</span>' +
+          '<span class="mono small muted">' + c.t + ' · ' + c.dur + ' · +' + c.pts + '</span>' +
+        '</div>' +
+      '</a>';
+    }).join('');
+
+    more.innerHTML = rows.length > shown
+      ? '<button class="btn ghost" id="loadmore">Показать ещё ' + Math.min(6, rows.length - shown) + '</button>'
+      : '<p class="small muted center">Это все звонки за 9 июля</p>';
+
+    var lm = document.getElementById('loadmore');
+    if (lm) lm.addEventListener('click', function () { shown += 6; render(); saveScroll(); });
+  }
+
+  function plural(n, f) {
+    var n10 = n % 10, n100 = n % 100;
+    if (n10 === 1 && n100 !== 11) return f[0];
+    if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return f[1];
+    return f[2];
+  }
+
+  /* Фильтр сохраняется при возврате с разбора — как в реальном продукте */
+  function saveScroll() {
+    try {
+      sessionStorage.setItem('calls.filter', active);
+      sessionStorage.setItem('calls.shown', String(shown));
+      sessionStorage.setItem('calls.scroll', String(window.scrollY));
+    } catch (e) {}
+  }
+
+  document.getElementById('filters').addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    active = btn.getAttribute('data-f');
+    shown = 8;
+    this.querySelectorAll('button').forEach(function (b) {
+      var on = b === btn;
+      b.className = 'chip' + (on ? ' accent' : '');
+      b.setAttribute('aria-selected', String(on));
+    });
+    render();
+    window.scrollTo({ top: 0 });
+    saveScroll();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('a[href^="call-detail"]')) saveScroll();
+  });
+
+  /* Восстановление состояния */
+  try {
+    var f = sessionStorage.getItem('calls.filter');
+    var s = sessionStorage.getItem('calls.shown');
+    if (f) {
+      active = f;
+      shown = s ? parseInt(s, 10) : 8;
+      document.querySelectorAll('#filters button').forEach(function (b) {
+        var on = b.getAttribute('data-f') === active;
+        b.className = 'chip' + (on ? ' accent' : '');
+        b.setAttribute('aria-selected', String(on));
+      });
+    }
+  } catch (e) {}
+
+  render();
+
+  try {
+    var y = parseInt(sessionStorage.getItem('calls.scroll') || '0', 10);
+    if (y > 0) window.scrollTo({ top: y });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

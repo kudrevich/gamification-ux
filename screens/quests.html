@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Квесты — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .quest-progress{margin-top:14px}
+  .quest-progress .bar{background:color-mix(in srgb,#ffffff 28%,transparent)}
+  .quest-progress .bar>i{background:#ffffff}
+  .error-list{
+    display:flex;align-items:stretch;gap:12px;
+    overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+    margin:0 calc(var(--gutter) * -1);padding:2px var(--gutter) 12px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .error-list::-webkit-scrollbar{display:none}
+  .error-list>.error-card{flex:0 0 calc(100% - 46px);scroll-snap-align:center;display:flex;flex-direction:column}
+  .error-list>.empty{flex:0 0 100%}
+  .error-list>.error-more{flex:0 0 auto;align-self:center;white-space:nowrap;margin-right:var(--gutter);scroll-snap-align:center}
+  .error-card{padding:15px;box-shadow:none}
+  .error-card h3{font-size:15px;margin-top:8px}
+  .error-card .quote{border-left:2px solid var(--accent);padding:2px 0 2px 12px;font-size:14px;line-height:1.5;margin-top:10px}
+  .error-card .quote.ref{border-color:var(--accent-2);background:color-mix(in srgb,#1447e6 5%,transparent);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:9px 10px}
+  .error-card .lead{margin-top:6px}
+  .error-date{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap}
+  .rec-list,.material-list{display:grid;gap:10px}
+  .rec-card{box-shadow:none;background:var(--surface)}
+  .rec-card h3{font-size:15px;margin-top:7px}
+  .rec-card .quote{border-left:2px solid var(--accent-2);padding:2px 0 2px 12px;font-size:14px;line-height:1.5;margin-top:10px}
+  .material-card{box-shadow:none;display:flex;align-items:center;gap:12px}
+  .material-card .material-copy{flex:1;min-width:0}
+  .material-card h3{font-size:15px}
+  .material-card p{margin-top:6px}
+  .material-card .material-link{width:44px;height:44px;min-height:44px;padding:0;flex:0 0 44px;border-radius:var(--r-pill)}
+  .material-card .material-link svg{width:18px;height:18px}
+  .history-list .lrow:first-child{padding-top:0}
+  .history-list .lrow:last-child{padding-bottom:0}
+  .completed-state{background:var(--surface);color:var(--fg);box-shadow:none}
+  .completed-state p{margin-top:6px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar" data-od-id="topbar-quests">
+    <a class="iconbtn" href="dashboard.html" aria-label="На главную" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Задания от системы</div>
+      <h1 class="sm">Квесты</h1>
+    </div>
+  </header>
+
+  <main data-od-id="main-quests">
+    <section class="card flat" style="margin-top:14px" data-od-id="section-balance">
+      <div class="grid2">
+        <div>
+          <div class="eyebrow">Активный баланс</div>
+          <div class="big sm" style="margin-top:4px" id="b-active">1 240</div>
+        </div>
+        <div>
+          <div class="eyebrow">Заморожено</div>
+          <div class="big sm" style="margin-top:4px" id="b-frozen">500</div>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top:12px">Квест блокирует часть уже заработанных очков и возвращает их после выполнения условия.</p>
+    </section>
+
+    <div class="sec"><h2 id="active-heading" data-od-id="h-active">Активный квест</h2></div>
+    <section id="active" class="card hero" data-od-id="section-active" aria-live="polite"></section>
+
+    <div id="quest-details">
+      <div class="sec">
+        <h2 data-od-id="h-errors">Ошибки по параметру «Закрытие»</h2>
+      </div>
+      <p class="small muted" style="margin:-3px 2px 10px">Последние 7 дней · только ошибки, влияющие на прогресс квеста</p>
+      <section id="errors" class="error-list" aria-label="Ошибки по параметру Закрытие, листайте вправо" tabindex="0" role="group" data-od-id="section-errors"></section>
+
+      <div class="sec"><h2 data-od-id="h-recommendations">Как улучшить закрытие</h2></div>
+      <section id="recommendations" class="rec-list" data-od-id="section-recommendations"></section>
+
+      <div class="sec"><h2 data-od-id="h-materials">Материалы компании</h2></div>
+      <section id="materials" class="material-list" aria-label="Обучающие материалы по параметру Закрытие" data-od-id="section-materials"></section>
+    </div>
+
+    <div class="sec"><h2 data-od-id="h-history">Выполненные квесты</h2></div>
+    <section class="card history-list" id="history" data-od-id="section-history">
+      <div id="history-new"></div>
+      <div class="lrow">
+        <div class="tag blue" aria-hidden="true">✓</div>
+        <div class="body"><div class="title">Резюме везде</div><div class="sub">Резюмирование в 100% продающих звонков — 2 июля</div></div>
+        <span class="mono small">+300</span>
+      </div>
+      <div class="lrow">
+        <div class="tag blue" aria-hidden="true">✓</div>
+        <div class="body"><div class="title">Комбо</div><div class="sub">Комбо предложено в 3 звонках за день — 24 июня</div></div>
+        <span class="mono small">+250</span>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="dashboard" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var S = App.state;
+  var PAGE_SIZE = 5;
+  var visibleErrors = PAGE_SIZE;
+
+  var errors = [
+    { daysAgo: 0, node: 'Фиксация следующего шага', title: 'Не назначен следующий контакт', quote: '«Хорошо, тогда подумайте и, если что, звоните — мы на связи.»', observation: 'Разговор завершился без даты, времени и повода для следующего контакта.', rule: 'Закрытие считается качественным, когда стороны договорились о конкретном следующем действии и сроке.', example: '«Я наберу вас в четверг в 11:00 и принесу расчёт. Подойдёт?»' },
+    { daysAgo: 1, node: 'Проверка готовности', title: 'Не проверено решение клиента', quote: '«Ну, тогда я отправлю презентацию, посмотрите.»', observation: 'Материал отправлен без вопроса о готовности принять решение или о том, что осталось уточнить.', rule: 'Перед завершением нужно проверить, достаточно ли информации для следующего шага.', example: '«Что ещё важно прояснить, чтобы вы могли принять решение?»' },
+    { daysAgo: 2, node: 'Обработка возражения', title: 'Ответ вместо уточняющего вопроса', quote: '«Понимаю, но у нас цена соответствует качеству.»', observation: 'Менеджер сразу защищает цену и не уточняет, что именно смущает клиента.', rule: 'Сначала локализуйте сомнение, затем отвечайте на конкретное возражение.', example: '«Правильно понимаю, вас останавливает именно бюджет или есть ещё вопрос?»' },
+    { daysAgo: 3, node: 'Договорённость о действии', title: 'Следующий шаг оставлен на клиенте', quote: '«Тогда решите и напишите мне, как будет удобно.»', observation: 'Инициатива полностью передана клиенту — договорённость о повторном контакте не зафиксирована.', rule: 'В конце звонка инициируйте понятный следующий контакт с обеих сторон.', example: '«Давайте я свяжусь с вами в пятницу после обеда — в 15:00 удобно?»' },
+    { daysAgo: 4, node: 'Подтверждение договорённости', title: 'Не проверено понимание условий', quote: '«Отлично, тогда всё отправлю на почту.»', observation: 'Не проговорено, что именно будет отправлено и что клиент сделает после получения.', rule: 'Клиент должен подтвердить, что следующий шаг понятен и принят.', example: '«Я отправляю расчёт сегодня, вы смотрите его до среды — верно?»' },
+    { daysAgo: 5, node: 'Работа с сомнением', title: 'Возражение принято без прояснения', quote: '«Хорошо, понимаю. Тогда не буду отвлекать.»', observation: 'Менеджер завершил разговор, не выяснив причину сомнения и возможный способ его снять.', rule: 'Перед завершением выясните, можно ли помочь клиенту принять решение сейчас.', example: '«Что сейчас мешает двигаться дальше? Возможно, я могу это прояснить.»' },
+    { daysAgo: 6, node: 'Фиксация следующего шага', title: 'Нет срока для обратной связи', quote: '«Я пришлю предложение, а вы посмотрите.»', observation: 'Предложение обещано, но не согласован срок обсуждения и обратной связи.', rule: 'У любого отправленного предложения должен быть согласованный момент возврата к обсуждению.', example: '«Отправлю сегодня. Давайте созвонимся завтра в 12:00 и пройдёмся по вопросам.»' }
+  ];
+
+  var recommendations = [
+    { label: 'Приём 01 · Зафиксируйте действие', title: 'Завершайте звонок конкретным следующим шагом', body: 'Назовите действие, ответственного и срок. Не оставляйте договорённость в формате «как-нибудь свяжемся».', quote: '«Я отправлю расчёт сегодня до 17:00, а завтра в 12:00 наберу — обсудим вопросы. Подойдёт?»' },
+    { label: 'Приём 02 · Уточните препятствие', title: 'Сначала выясните, что мешает решению', body: 'Если клиент сомневается, не переходите к защите цены или продукта. Задайте короткий вопрос и отвечайте на конкретную причину.', quote: '«Что сейчас главное препятствие для решения — сроки, бюджет или что-то ещё?»' },
+    { label: 'Приём 03 · Проверьте договорённость', title: 'Попросите клиента подтвердить план', body: 'Коротко повторите, что произойдёт дальше, и получите согласие на этот порядок действий.', quote: '«Верно зафиксировал: сегодня вы смотрите предложение, завтра в 12:00 возвращаемся к обсуждению?»' }
+  ];
+
+  var materials = [
+    { id: 'next-step', title: 'Финальный этап сделки: как договориться о следующем шаге', description: 'Разбор фиксации решения клиента и договорённости о следующем контакте.' },
+    { id: 'closing-checklist', title: 'Чек-лист закрытия звонка', description: 'Проверьте решение, следующий шаг, срок и ответственного перед завершением разговора.' },
+    { id: 'closing-phrases', title: 'Сильные формулировки для фиксации договорённости', description: 'Примеры фраз для перехода от обсуждения к конкретному действию клиента.' }
+  ];
+
+  function relativeDate(daysAgo) {
+    if (daysAgo === 0) return 'сегодня';
+    if (daysAgo === 1) return 'вчера';
+    return daysAgo + ' дн. назад';
+  }
+
+  function renderBalance() {
+    document.getElementById('b-active').textContent = App.num(S.balanceActive);
+    document.getElementById('b-frozen').textContent = App.num(S.balanceFrozen);
+  }
+
+  function renderActive() {
+    var box = document.getElementById('active');
+    var heading = document.getElementById('active-heading');
+    var q = S.quest;
+    if (!q || !q.accepted) {
+      heading.textContent = 'Результат';
+      box.className = 'card completed-state';
+      box.innerHTML = '<div class="eyebrow">Квест выполнен</div><h3 style="font-size:18px;margin-top:6px">Очки возвращены в активный баланс</h3><p class="small muted">История выполнения сохранена ниже.</p>';
+      document.getElementById('quest-details').hidden = true;
+      return;
+    }
+    heading.textContent = 'Активный квест';
+    document.getElementById('quest-details').hidden = false;
+    box.className = 'card hero';
+    var pct = Math.min(100, Math.round(q.progress / q.target * 100));
+    var action = q.progress >= q.target
+      ? '<button class="btn" style="background:var(--bg);color:var(--fg);margin-top:14px" id="claim" type="button" data-od-id="btn-claim">Забрать ' + App.num(q.frozen) + ' очков</button>'
+      : '<p class="small" style="margin-top:12px;opacity:.86">Осталось ' + (q.target - q.progress) + ' качественных закрытия подряд. Прогресс обновляется после обработки каждого звонка.</p>';
+    box.innerHTML = '<div class="between"><div class="eyebrow">Параметр · Закрытие</div><span class="freeze">Заморожено ' + App.num(q.frozen) + '</span></div>' +
+      '<h3 style="font-size:20px;margin:8px 0 4px">' + q.title + '</h3>' +
+      '<p class="small" style="opacity:.88">Этап «Закрытие» ≥ 7 в 5 звонках подряд</p>' +
+      '<div class="quest-progress"><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
+      '<div class="between small" style="margin-top:8px"><span style="opacity:.82">Прогресс</span><span class="mono">' + q.progress + ' из ' + q.target + ' · ' + pct + '%</span></div>' + action;
+    var claim = document.getElementById('claim');
+    if (claim) claim.addEventListener('click', claimQuest);
+  }
+
+  function errorCard(error, index) {
+    var id = 'quest-error-' + (index + 1);
+    return '<article class="card error-card" data-od-id="' + id + '">' +
+      '<div class="between"><span class="eyebrow">' + error.node + '</span><time class="error-date">' + relativeDate(error.daysAgo) + '</time></div>' +
+      '<h3>' + error.title + '</h3>' +
+      '<blockquote class="quote">«' + error.quote.replace(/[«»]/g, '') + '»</blockquote>' +
+      '<div class="hr"></div><div class="eyebrow">Что пошло не так</div>' +
+      '<p class="small muted lead">' + error.observation + '</p>' +
+      '<div class="eyebrow" style="margin-top:12px">Что нарушено</div>' +
+      '<p class="small muted lead">' + error.rule + '</p>' +
+      '<div class="eyebrow" style="margin-top:12px">Как можно сказать</div>' +
+      '<blockquote class="quote ref">«' + error.example.replace(/[«»]/g, '') + '»</blockquote></article>';
+  }
+
+  function renderErrors() {
+    var recent = errors.filter(function (item) { return item.daysAgo >= 0 && item.daysAgo < 7; });
+    var list = document.getElementById('errors');
+    var scrollLeft = list.scrollLeft;
+    if (!recent.length) {
+      list.innerHTML = '<div class="empty"><b>Ошибок не найдено</b>За последние 7 дней ошибок по параметру «Закрытие» нет.</div>';
+      return;
+    }
+    var cards = recent.slice(0, visibleErrors).map(errorCard).join('');
+    var more = visibleErrors < recent.length
+      ? '<button class="btn ghost error-more" id="show-more" type="button" data-od-id="btn-show-more">Показать ещё · ' + Math.min(PAGE_SIZE, recent.length - visibleErrors) + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px"><path d="M9 5l7 7-7 7"/></svg></button>'
+      : '';
+    list.innerHTML = cards + more;
+    list.scrollLeft = scrollLeft;
+  }
+
+  function renderRecommendations() {
+    document.getElementById('recommendations').innerHTML = recommendations.map(function (item, index) {
+      return '<article class="card rec-card" data-od-id="recommendation-' + (index + 1) + '"><div class="eyebrow">' + item.label + '</div>' +
+        '<h3>' + item.title + '</h3><p class="small muted" style="margin-top:6px">' + item.body + '</p>' +
+        '<blockquote class="quote">«' + item.quote.replace(/[«»]/g, '') + '»</blockquote></article>';
+    }).join('');
+  }
+
+  function renderMaterials() {
+    document.getElementById('materials').innerHTML = materials.map(function (item, index) {
+      return '<article class="card material-card" data-od-id="training-material-' + (index + 1) + '">' +
+        '<div class="material-copy"><h3>' + item.title + '</h3><p class="small muted">' + item.description + '</p></div>' +
+        '<a class="btn ghost sm material-link" href="material.html?id=' + encodeURIComponent(item.id) + '" aria-label="Открыть материал: ' + item.title + '" title="Открыть материал" data-od-id="open-material-' + (index + 1) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg></a></article>';
+    }).join('');
+  }
+
+  function renderHistory() {
+    var history = Array.isArray(S.questHistory) ? S.questHistory : [];
+    var box = document.getElementById('history-new');
+    box.innerHTML = '';
+    history.slice().reverse().forEach(function (item, index) {
+      var row = document.createElement('div');
+      row.className = 'lrow';
+      row.setAttribute('data-od-id', 'history-completed-' + (index + 1));
+      var icon = document.createElement('div'); icon.className = 'tag blue'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = '✓';
+      var body = document.createElement('div'); body.className = 'body';
+      var title = document.createElement('div'); title.className = 'title'; title.textContent = item.title;
+      var sub = document.createElement('div'); sub.className = 'sub'; sub.textContent = 'Условие выполнено — ' + item.date;
+      var points = document.createElement('span'); points.className = 'mono small'; points.textContent = '+' + App.num(item.points);
+      body.appendChild(title); body.appendChild(sub); row.appendChild(icon); row.appendChild(body); row.appendChild(points);
+      box.appendChild(row);
+    });
+  }
+
+  function claimQuest() {
+    var q = S.quest;
+    if (!q || q.progress < q.target) return;
+    S.balanceActive += q.frozen;
+    S.balanceFrozen -= q.frozen;
+    S.questHistory = Array.isArray(S.questHistory) ? S.questHistory : [];
+    S.questHistory.push({ title: q.title, date: new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' }).format(new Date()), points: q.frozen });
+    S.quest = null;
+    App.save();
+    App.toast('Разморожено ' + App.num(q.frozen) + ' очков');
+    renderBalance(); renderActive(); renderHistory();
+  }
+
+  document.getElementById('errors').addEventListener('click', function (event) {
+    if (!event.target.closest('#show-more')) return;
+    visibleErrors += PAGE_SIZE;
+    renderErrors();
+  });
+
+  renderBalance();
+  renderActive();
+  renderErrors();
+  renderRecommendations();
+  renderMaterials();
+  renderHistory();
+
+  var errorScroller = document.getElementById('errors');
+  errorScroller.addEventListener('keydown', function (event) {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    var card = errorScroller.querySelector('.error-card');
+    var step = card ? card.getBoundingClientRect().width + 12 : errorScroller.clientWidth;
+    errorScroller.scrollBy({ left: event.key === 'ArrowRight' ? step : -step, behavior: 'smooth' });
+    event.preventDefault();
+  });
+})();
+</script>
+</body>
+</html>

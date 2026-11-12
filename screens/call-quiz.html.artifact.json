@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/call-quiz.html",
+  "entry": "screens/call-quiz.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-11-12T12:36:20.607Z",
+  "updatedAt": "2026-11-12T12:36:20.607Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

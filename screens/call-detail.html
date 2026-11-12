@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Разбор звонка — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  /* Плеер записи — закреплён снизу над таб-баром, не выгружается при скролле */
+  .player{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    width:100%;max-width:640px;z-index:25;
+    background:var(--bg);border-top:1px solid var(--border);
+    box-shadow:0 -10px 30px rgba(12,6,24,.08);
+    padding:12px var(--gutter) 14px;
+  }
+  .player .track{height:6px;border-radius:var(--r-pill);background:var(--surface);overflow:hidden;cursor:pointer}
+  .player .track>i{display:block;height:100%;background:var(--accent);width:0}
+  .play{
+    width:48px;height:48px;border-radius:var(--r-pill);flex:none;
+    background:var(--accent);color:#ffffff;display:grid;place-items:center;
+    box-shadow:var(--shadow-accent);
+  }
+  .play svg{width:20px;height:20px}
+  .quote{
+    border-left:2px solid var(--accent);padding:2px 0 2px 14px;
+    font-size:15px;line-height:1.5;
+  }
+  .tc{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);
+    background:color-mix(in srgb,#5a28ff 10%,transparent);
+    border:none;border-radius:var(--r-pill);padding:6px 11px;min-height:34px;
+  }
+  /* Лента ошибок: карточки одного формата, свайп вбок */
+  .errs{
+    display:flex;align-items:stretch;gap:12px;
+    overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+    margin:0 calc(var(--gutter) * -1);padding:2px var(--gutter) 12px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .errs::-webkit-scrollbar{display:none}
+  .errs>.card{flex:0 0 calc(100% - 46px);scroll-snap-align:center;display:flex;flex-direction:column}
+  .errs h3{font-size:16px;margin-top:8px}
+  .errs .quote{margin-top:10px}
+  .errs .quote.ref{border-color:var(--accent-2)}
+  .errs .tc{align-self:flex-start;margin-top:10px}
+  .errs .lead{margin-top:12px}
+  .flag{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--accent);background:color-mix(in srgb,#5a28ff 10%,transparent);
+    border-radius:var(--r-pill);padding:3px 8px;flex:none;
+  }
+  .dots{display:flex;gap:6px;justify-content:center;margin-top:-2px}
+  .dots i{width:6px;height:6px;border-radius:var(--r-pill);background:var(--border);transition:width .15s,background .15s}
+  .dots i.on{width:18px;background:var(--accent)}
+  .checkline{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .checkline:last-child{border-bottom:none}
+  .checkline .k{flex:1;min-width:0}
+  .checkline .v{
+    font-family:var(--mono);font-size:13px;font-weight:600;color:var(--muted);
+    flex:none;display:flex;align-items:center;gap:6px;
+  }
+  .checkline .v.hit{color:var(--accent)}
+  .mark{width:20px;height:20px;flex:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-detail">
+    <a class="iconbtn" href="calls.html" aria-label="Назад к звонкам" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi mono" id="call-meta">Звонок #54115 · вчера 16:20</div>
+      <h1 class="sm" id="call-client">ООО «Ветразь»</h1>
+    </div>
+  </header>
+
+  <main data-od-id="main-detail" style="padding-bottom:calc(var(--tabbar-h) + 96px + env(safe-area-inset-bottom))">
+
+    <!-- Оценка -->
+    <section class="card" style="margin-top:14px" data-od-id="section-score">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Качество разговора</div>
+          <div class="row" style="gap:8px;margin-top:4px">
+            <span class="big">58</span><span class="muted mono" style="font-size:17px">/ 100</span>
+          </div>
+        </div>
+        <div class="center">
+          <div class="eyebrow">Чеклист</div>
+          <div class="big sm" style="margin-top:4px">3 / 5</div>
+        </div>
+      </div>
+      <div class="bar" style="margin-top:14px"><i style="width:58%"></i></div>
+      <a class="btn ghost" href="points-log.html" style="margin-top:14px" data-od-id="btn-points">
+        За что 58 очков
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M9 5l7 7-7 7"/></svg>
+      </a>
+    </section>
+
+    <section class="card quiz-entry" id="call-quiz-entry" data-od-id="section-call-quiz-entry">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Очки за звонок</div>
+          <p class="quiz-entry-title" id="quiz-entry-title" style="margin-top:5px">До 58 очков после квиза</p>
+          <p class="quiz-entry-copy" id="quiz-entry-copy">Ответьте на 6 вопросов по разбору звонка. Очки начислим после завершения.</p>
+        </div>
+        <span class="chip accent mono" id="quiz-entry-points">+58</span>
+      </div>
+      <a class="btn accent" href="call-quiz.html" id="quiz-entry-link" style="margin-top:12px" data-od-id="btn-start-call-quiz">Пройти квиз</a>
+      <p class="small muted" style="margin-top:9px">Оценка качества 58/100 не зависит от ответов.</p>
+    </section>
+
+    <!-- Упущено -->
+    <section class="card flat" style="margin-top:12px" data-od-id="section-lost">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Сделка сорвана</div>
+          <p class="small muted" style="margin-top:4px">Средний чек по сегменту</p>
+        </div>
+        <span class="big sm">−28 000 ₽</span>
+      </div>
+    </section>
+
+    <!-- Что пошло не так: лента карточек одного формата -->
+    <div class="sec">
+      <h2 data-od-id="h-errors">Что пошло не так</h2>
+      <span class="small muted mono" id="err-count">1 из 6</span>
+    </div>
+
+    <div class="errs" id="errs" tabindex="0" role="group"
+         aria-label="Ошибки разговора по порядку, листайте вбок" data-od-id="errors-scroller">
+      <section class="card" data-od-id="err-1">
+        <div class="between">
+          <span class="eyebrow">Приветствие и вход в контакт</span>
+        </div>
+        <h3>Пропущено программирование</h3>
+        <blockquote class="quote">«Расскажите, а что у вас сейчас с поставками?»</blockquote>
+        <button class="tc" data-seek="34" data-od-id="btn-seek-34">▸ Послушать 00:34</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Программирование»: не проговорена рамка разговора и не получено согласие клиента на вопросы.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Давайте познакомимся, я задам пару вопросов, а там сами решите, идёт?» — и дождаться согласия.</blockquote>
+      </section>
+      <section class="card" data-od-id="err-2">
+        <div class="between">
+          <span class="eyebrow">Квалификация и потребности</span>
+        </div>
+        <h3>Не выяснен бюджет</h3>
+        <blockquote class="quote">«Хорошо, а теперь расскажу, что у нас есть.»</blockquote>
+        <button class="tc" data-seek="72" data-od-id="btn-seek-72">▸ Послушать 01:12</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Квалификация»: не выяснены бюджетные ожидания до презентации, предложение может не попасть в диапазон клиента.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Прежде чем перейду к вариантам — на какой примерно бюджет вы рассчитываете?»</blockquote>
+      </section>
+      <section class="card" data-od-id="err-3">
+        <div class="between">
+          <span class="eyebrow">Квалификация и потребности</span>
+        </div>
+        <h3>Резюме без подтверждения</h3>
+        <blockquote class="quote">«Ну, я понял, что вам важны сроки и стабильность поставок.»</blockquote>
+        <button class="tc" data-seek="118" data-od-id="btn-seek-118">▸ Послушать 01:58</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Резюмирование»: не задан вопрос на подтверждение — нет закрепляющего «да» перед презентацией.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Давайте подытожу: вам важны сроки и стабильность, всё верно, ничего не упустил?»</blockquote>
+      </section>
+      <section class="card" data-od-id="err-4">
+        <div class="between">
+          <span class="eyebrow">Презентация и доверие</span>
+        </div>
+        <h3>Презентация без привязки к боли</h3>
+        <blockquote class="quote">«У нас двенадцать складов и своя логистика по всей стране.»</blockquote>
+        <button class="tc" data-seek="155" data-od-id="btn-seek-155">▸ Послушать 02:35</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Презентация»: перечислены возможности компании, но ни одна не связана с названной клиентом болью — срывами сроков.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Вы сказали, что вас подводят по срокам. У нас двенадцать складов, поэтому отгрузка идёт с ближайшего — это те самые сутки вместо недели.»</blockquote>
+      </section>
+      <section class="card" data-od-id="err-5">
+        <div class="between">
+          <span class="eyebrow">Закрытие и возражения</span>
+          <span class="flag">этап потерь</span>
+        </div>
+        <h3>Возражение без локализации</h3>
+        <blockquote class="quote">«Ну смотрите, у нас качество выше, поэтому и цена такая.»</blockquote>
+        <button class="tc" data-seek="206" data-od-id="btn-seek-206">▸ Послушать 03:26</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Локализация возражений»: разговор ушёл в оправдание цены без локализующего вопроса — непонятно, в чём именно возражение.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Правильно понимаю, если сойдёмся по цене, остальное вас устраивает?» — и только потом про разницу.</blockquote>
+      </section>
+      <section class="card" data-od-id="err-6">
+        <div class="between">
+          <span class="eyebrow">Закрытие и возражения</span>
+          <span class="flag">этап потерь</span>
+        </div>
+        <h3>Не назначен следующий шаг — лид остыл</h3>
+        <blockquote class="quote">«Хорошо, тогда подумайте и, если что, звоните — мы на связи.»</blockquote>
+        <button class="tc" data-seek="252" data-od-id="btn-seek-252">▸ Послушать 04:12</button>
+
+        <div class="hr"></div>
+
+        <div class="eyebrow">Что нарушено</div>
+        <p class="small muted lead" style="margin-top:6px">Узел «Закрытие»: разговор закончился на «я подумаю» — ни даты, ни времени, ни повода для следующего контакта.</p>
+
+        <div class="eyebrow lead">Эталон</div>
+        <blockquote class="quote ref">«Давайте так: я в четверг в 11 наберу и принесу расчёт под ваш объём. Если решение не созреет — просто скажете, и я не буду настаивать.»</blockquote>
+      </section>
+    </div>
+    <div class="dots" id="err-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <!-- Обязательные элементы: одно поле в строке -->
+    <div class="sec"><h2 data-od-id="h-checklist">Обязательные элементы</h2><span class="small muted mono">4 из 7</span></div>
+    <section class="card" data-od-id="section-checklist">
+      <div class="checkline"><span class="k">Приветствие по стандарту</span><span class="v"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#5a28ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg></span></div>
+      <div class="checkline"><span class="k">Квалификация проведена</span><span class="v"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#5a28ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg></span></div>
+      <div class="checkline"><span class="k">Презентация под потребность</span><span class="v"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#5a28ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5 11-11"/></svg></span></div>
+      <div class="checkline"><span class="k">Резюме договорённостей</span><span class="v"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#5f5b67" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+      <div class="checkline"><span class="k">Следующий шаг назначен</span><span class="v"><svg class="mark" viewBox="0 0 24 24" fill="none" stroke="#5f5b67" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+      <div class="checkline"><span class="k">Квалификационных вопросов</span><span class="v"><span>2 из 3</span></span></div>
+      <div class="checkline"><span class="k">Попыток закрытия</span><span class="v hit"><span>3 из 3</span></span></div>
+      <div class="checkline"><span class="k">Открытых вопросов</span><span class="v"><span>10</span></span></div>
+      <div class="checkline"><span class="k">Программирование</span><span class="v"><span>частично</span></span></div>
+      <p class="small muted" style="margin-top:12px">
+        Считаются только строки с однозначным ответом — «частично» и «не требовалось»
+        в счёт не идут.
+      </p>
+    </section>
+
+    <a class="btn ghost" href="skills.html" style="margin-top:22px" data-od-id="btn-skills">Посмотреть навык «Закрытие»</a>
+
+  </main>
+
+  <!-- Плеер записи -->
+  <div class="player" data-od-id="player">
+    <div class="row">
+      <button class="play" id="play" aria-label="Воспроизвести запись" data-od-id="btn-play">
+        <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+      <div style="flex:1;min-width:0">
+        <div class="between small mono muted" style="margin-bottom:6px">
+          <span id="cur">00:00</span><span>04:51</span>
+        </div>
+        <div class="track" id="track" role="slider" aria-label="Позиция записи" aria-valuemin="0" aria-valuemax="291" aria-valuenow="0" tabindex="0"><i id="fill"></i></div>
+      </div>
+      <button class="chip" id="rate" aria-label="Скорость воспроизведения" data-od-id="btn-rate">1×</button>
+    </div>
+  </div>
+
+  <nav class="tabbar" data-tabbar="calls" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  /* Плеер: прототип без аудиофайла — позиция, скорость и переходы по таймкоду
+     работают полностью, звук подключается на этапе интеграции. */
+  var DUR = 291; // 04:51
+  var pos = 0, playing = false, rate = 1, timer = null;
+  var fill = document.getElementById('fill');
+  var cur = document.getElementById('cur');
+  var track = document.getElementById('track');
+  var icon = document.getElementById('play-icon');
+
+  var ICON_PLAY = '<path d="M8 5.5v13l11-6.5z"/>';
+  var ICON_PAUSE = '<path d="M8 5.5h3.2v13H8zM12.8 5.5H16v13h-3.2z"/>';
+
+  function fmt(s) {
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  function paint() {
+    fill.style.width = (pos / DUR * 100) + '%';
+    cur.textContent = fmt(pos);
+    track.setAttribute('aria-valuenow', String(Math.round(pos)));
+  }
+
+  function tick() {
+    pos += 0.25 * rate;
+    if (pos >= DUR) { pos = DUR; stop(); }
+    paint();
+  }
+
+  function start() {
+    playing = true;
+    icon.innerHTML = ICON_PAUSE;
+    document.getElementById('play').setAttribute('aria-label', 'Пауза');
+    timer = setInterval(tick, 250);
+  }
+  function stop() {
+    playing = false;
+    icon.innerHTML = ICON_PLAY;
+    document.getElementById('play').setAttribute('aria-label', 'Воспроизвести запись');
+    clearInterval(timer);
+  }
+
+  document.getElementById('play').addEventListener('click', function () {
+    playing ? stop() : start();
+  });
+
+  document.getElementById('rate').addEventListener('click', function () {
+    rate = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1;
+    this.textContent = rate + '×';
+  });
+
+  track.addEventListener('click', function (e) {
+    var r = this.getBoundingClientRect();
+    pos = Math.max(0, Math.min(DUR, (e.clientX - r.left) / r.width * DUR));
+    paint();
+  });
+
+  track.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { pos = Math.min(DUR, pos + 5); paint(); e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { pos = Math.max(0, pos - 5); paint(); e.preventDefault(); }
+  });
+
+  /* Переход по таймкоду из текста разбора */
+  document.querySelectorAll('[data-seek]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      pos = parseInt(this.getAttribute('data-seek'), 10);
+      paint();
+      if (!playing) start();
+      App.toast('Запись на ' + fmt(pos));
+    });
+  });
+
+  paint();
+
+  /* Лента ошибок: счётчик, точки, стрелки на десктопе */
+  var errs = document.getElementById('errs');
+  if (errs) {
+    var cards = errs.querySelectorAll('.card');
+    var dots = document.getElementById('err-dots').querySelectorAll('i');
+    var label = document.getElementById('err-count');
+    var shown = 0;
+
+    function step() {
+      return cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : errs.clientWidth;
+    }
+
+    function sync() {
+      var i = Math.round(errs.scrollLeft / step());
+      i = Math.max(0, Math.min(cards.length - 1, i));
+      if (i === shown) return;
+      shown = i;
+      label.textContent = (i + 1) + ' из ' + cards.length;
+      dots.forEach(function (d, n) { d.classList.toggle('on', n === i); });
+    }
+
+    errs.addEventListener('scroll', function () { window.requestAnimationFrame(sync); }, { passive: true });
+    errs.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      errs.scrollBy({ left: e.key === 'ArrowRight' ? step() : -step(), behavior: 'smooth' });
+      e.preventDefault();
+    });
+  }
+
+  /* Шапка подстраивается под звонок из ленты */
+  var id = new URLSearchParams(location.search).get('id');
+  var OTHER = {
+    '54118': { client: 'Ирина П. · входящий', meta: 'Звонок #54118 · вчера 17:42' }
+  };
+  if (id && OTHER[id]) {
+    document.getElementById('call-client').textContent = OTHER[id].client;
+    document.getElementById('call-meta').textContent = OTHER[id].meta;
+  }
+
+  var seek = new URLSearchParams(location.search).get('seek');
+  if (seek !== null && /^\d+$/.test(seek)) {
+    pos = Math.min(DUR, parseInt(seek, 10));
+    paint();
+    start();
+  }
+})();
+</script>
+<script>
+(function () {
+  var entry = document.getElementById('call-quiz-entry');
+  if (!entry) return;
+  var params = new URLSearchParams(location.search);
+  var callId = params.get('id') || '54115';
+  if (callId !== '54115') { entry.hidden = true; return; }
+
+  var title = document.getElementById('quiz-entry-title');
+  var copy = document.getElementById('quiz-entry-copy');
+  var points = document.getElementById('quiz-entry-points');
+  var link = document.getElementById('quiz-entry-link');
+  try {
+    var saved = JSON.parse(localStorage.getItem('callQuiz:v2:54115'));
+    if (!saved) return;
+    if (saved.status === 'completed') {
+      title.textContent = 'Квиз пройден · начислено ' + saved.earnedPoints + ' очков';
+      copy.textContent = 'Результат сохранён для звонка #54115. Повторное начисление не произойдёт.';
+      points.textContent = saved.earnedPoints + ' / 58';
+      link.textContent = 'Посмотреть результат';
+    } else if (saved.status === 'in_progress') {
+      title.textContent = 'Квиз начат · осталось ответить на вопросы';
+      copy.textContent = 'Продолжите ту же попытку. Очки начислятся после шестого ответа.';
+      link.textContent = 'Продолжить квиз';
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

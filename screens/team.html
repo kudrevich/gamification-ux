@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Тренерская зона — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .sev{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+       padding:4px 9px;border-radius:var(--r-pill);white-space:nowrap}
+  .sev.high{background:color-mix(in srgb,#5a28ff 12%,transparent);color:var(--accent)}
+  .sev.mid{background:color-mix(in srgb,#1447e6 10%,transparent);color:var(--accent-2)}
+  .sev.low{background:var(--surface);color:var(--muted)}
+  .alert .ic{width:26px;height:26px;flex:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-team">
+    <div class="ttl">
+      <div class="hi">Руководитель отдела продаж</div>
+      <h1 data-od-id="h-team">Тренерская зона</h1>
+    </div>
+    <a class="avatar" href="profile.html" aria-label="Профиль" data-od-id="link-profile">АС</a>
+  </header>
+
+  <main data-od-id="main-team">
+
+    <!-- Вкладки сотрудников -->
+    <div class="scroller" id="tabs" role="tablist" aria-label="Сотрудники" data-od-id="employee-tabs"></div>
+
+    <!-- Сводка -->
+    <section class="card" id="summary" data-od-id="section-summary"></section>
+
+    <!-- Фильтр важности -->
+    <div class="seg" id="sev" style="margin-top:14px" data-od-id="seg-severity">
+      <button data-value="all" aria-pressed="true">Все</button>
+      <button data-value="high" aria-pressed="false">Высокие</button>
+      <button data-value="medium" aria-pressed="false">Средние</button>
+    </div>
+
+    <div class="sec"><h2 data-od-id="h-alerts">Алерты</h2><span class="small muted" id="alert-count">—</span></div>
+    <section class="stack" id="alerts" data-od-id="section-alerts"></section>
+
+    <p class="note" style="margin-top:22px" data-od-id="note-alerts">
+      Алерты не начисляют и не снимают очки. Это повод для разговора, а не наказание —
+      баланс и рейтинг сотрудника они не меняют.
+    </p>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="team" data-role="lead" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var PEOPLE = [
+    { id: 'all',     name: 'Вся команда' },
+    { id: 'ivan',    name: 'Иван К.' },
+    { id: 'maria',   name: 'Мария Л.' },
+    { id: 'irina',   name: 'Ирина П.' },
+    { id: 'pavel',   name: 'Павел Т.' },
+    { id: 'klavdia', name: 'Клавдия Н.' },
+    { id: 'oleg',    name: 'Олег В.' }
+  ];
+
+  var ALERTS = [
+    { who: 'oleg', name: 'Олег В.', sev: 'high', type: 'Манипулятивный приём', call: 34100,
+      text: 'Многочисленный пуш после прямого отказа клиента. Прямой риск давления и жалобы.', when: 'сегодня, 15:12' },
+    { who: 'klavdia', name: 'Клавдия Н.', sev: 'high', type: 'Стоп-фразы', call: 33859,
+      text: 'Стоп-фраза про нажатую кнопку заставила клиента оправдываться — разговор ушёл в защиту.', when: 'сегодня, 12:48' },
+    { who: 'ivan', name: 'Иван К.', sev: 'medium', type: 'Проседание закрытия', call: 54115,
+      text: 'Этап «Закрытие» ниже 4 три звонка подряд. Системная просадка навыка, а не разовый сбой.', when: 'вчера, 16:20' },
+    { who: 'pavel', name: 'Павел Т.', sev: 'medium', type: 'Резюме пропущено', call: 53980,
+      text: 'Резюмирование отсутствует в 6 из 9 продающих звонков за два дня.', when: 'вчера, 11:05' },
+    { who: 'oleg', name: 'Олег В.', sev: 'medium', type: 'Проседание квалификации', call: 33712,
+      text: 'Локализующий вопрос не задан в 7 звонках подряд.', when: 'пятница, 17:40' }
+  ];
+
+  var SUMMARY = {
+    all:     { title: 'Вся команда', conv: '23%', delta: '▲ 2', note: '6 менеджеров · 164 звонка за неделю · 2 высоких алерта' },
+    ivan:    { title: 'Иван Кудревич', conv: '23%', delta: '▲ 4', note: 'слабый узел — «Закрытие» 4.2 · активный квест «Дожать красиво»' },
+    maria:   { title: 'Мария Л.', conv: '26%', delta: '▲ 3', note: 'ровная неделя, алертов нет · лига Золото' },
+    irina:   { title: 'Ирина П.', conv: '31%', delta: '▲ 2', note: 'лучший результат недели · эталон закрытия в звонке #54118' },
+    pavel:   { title: 'Павел Т.', conv: '21%', delta: '▲ 1', note: 'резюмирование — точка роста' },
+    klavdia: { title: 'Клавдия Н.', conv: '19%', delta: '▲ 5', note: 'лучшая динамика в команде при низком абсолюте' },
+    oleg:    { title: 'Олег В.', conv: '17%', delta: '▼ 2', note: 'два алерта, один высокий · требуется разговор' }
+  };
+
+  var who = 'all', sev = 'all';
+
+  function renderTabs() {
+    document.getElementById('tabs').innerHTML = PEOPLE.map(function (p) {
+      var on = p.id === who;
+      var n = p.id === 'all' ? ALERTS.length : ALERTS.filter(function (a) { return a.who === p.id; }).length;
+      return '<button class="chip' + (on ? ' accent' : '') + '" role="tab" aria-selected="' + on + '"' +
+        ' data-p="' + p.id + '" data-od-id="tab-emp-' + p.id + '">' + p.name +
+        (n ? ' <span class="n">' + n + '</span>' : '') + '</button>';
+    }).join('');
+  }
+
+  function renderSummary() {
+    var s = SUMMARY[who];
+    document.getElementById('summary').innerHTML =
+      '<div class="between"><div><div class="eyebrow">Конверсия недели</div>' +
+      '<div class="row" style="gap:8px;align-items:baseline;margin-top:4px">' +
+      '<span class="big sm">' + s.conv + '</span>' +
+      '<span class="delta ' + (s.delta.indexOf('▲') === 0 ? 'up' : 'down') + '">' + s.delta + '</span></div></div>' +
+      (who === 'all' ? '' : '<a class="btn ghost sm" href="metrics.html">Метрики</a>') +
+      '</div><p class="small muted" style="margin-top:12px">' + s.note + '</p>';
+  }
+
+  function renderAlerts() {
+    var rows = ALERTS.filter(function (a) {
+      return (who === 'all' || a.who === who) && (sev === 'all' || a.sev === sev);
+    });
+
+    document.getElementById('alert-count').textContent = rows.length ? rows.length + ' за неделю' : '';
+
+    var box = document.getElementById('alerts');
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty"><b>Критичных отклонений нет</b>' +
+        'За выбранный период по этому фильтру система ничего не нашла. Это нормальное состояние, а не пустой экран.</div>';
+      return;
+    }
+
+    box.innerHTML = rows.map(function (a, i) {
+      var lbl = a.sev === 'high' ? 'высокий' : a.sev === 'medium' ? 'средний' : 'низкий';
+      var cls = a.sev === 'high' ? 'high' : a.sev === 'medium' ? 'mid' : 'low';
+      return '<article class="card alert" data-od-id="alert-' + i + '">' +
+        '<div class="between"><span class="sev ' + cls + '">' + lbl + '</span>' +
+        '<span class="small muted mono">' + a.when + '</span></div>' +
+        '<h3 style="font-size:16px;margin:10px 0 4px">' + a.type + '</h3>' +
+        (who === 'all' ? '<div class="small muted" style="margin-bottom:6px">' + a.name + '</div>' : '') +
+        '<p class="small muted">' + a.text + '</p>' +
+        '<a class="btn ghost sm" style="width:100%;margin-top:12px" href="call-detail.html?id=' + a.call + '">' +
+        'Открыть звонок #' + a.call + '</a></article>';
+    }).join('');
+  }
+
+  function renderAll() { renderTabs(); renderSummary(); renderAlerts(); }
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    who = b.getAttribute('data-p');
+    renderAll();
+  });
+
+  document.getElementById('sev').addEventListener('segchange', function (e) {
+    sev = e.detail.value === 'all' ? 'all' : e.detail.value === 'high' ? 'high' : 'medium';
+    renderAlerts();
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

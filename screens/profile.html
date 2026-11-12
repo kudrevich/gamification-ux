@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Профиль — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+  .day{aspect-ratio:1;border-radius:var(--r-sm);display:grid;place-items:center;
+       font-family:var(--mono);font-size:11px;background:var(--surface);color:var(--muted);
+       border:1px solid var(--border)}
+  .day.on{background:var(--accent);color:#ffffff;border-color:transparent}
+  .day.today{box-shadow:0 0 0 2px var(--accent)}
+  .ach{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .ach div{aspect-ratio:1;border-radius:var(--r-sm);display:grid;place-items:center;
+           background:var(--surface);border:1px solid var(--border);font-size:17px}
+  .ach div.got{background:color-mix(in srgb,#5a28ff 12%,transparent);border-color:transparent;color:var(--accent);font-weight:600;font-family:var(--mono)}
+  .ach div.lock{color:var(--border)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-profile">
+    <a class="iconbtn" href="dashboard.html" aria-label="На главную" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Менеджер отдела продаж</div>
+      <h1 class="sm" data-bind="name">Иван Кудревич</h1>
+    </div>
+    <a class="iconbtn" href="login.html" aria-label="Выйти" data-od-id="btn-exit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"/><path d="M9 8l-4 4 4 4M5 12h9"/></svg>
+    </a>
+  </header>
+
+  <main data-od-id="main-profile">
+
+    <!-- Статус -->
+    <section class="card hero" style="margin-top:14px" data-od-id="section-status">
+      <div class="row" style="gap:14px">
+        <div class="avatar" style="width:56px;height:56px;font-size:17px;box-shadow:none;background:rgba(255,255,255,.2)">ИК</div>
+        <div style="flex:1;min-width:0">
+          <div class="eyebrow">Уровень 7</div>
+          <h2 style="font-size:22px">Охотник</h2>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="between small" style="margin-bottom:6px">
+          <span style="opacity:.85">XP до 8 уровня</span>
+          <span class="mono">2 840 / 3 500</span>
+        </div>
+        <div class="bar on-dark"><i style="width:81%"></i></div>
+      </div>
+      <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
+        <span class="chip" style="background:rgba(255,255,255,.18);border-color:transparent;color:#ffffff">Лига Серебро</span>
+        <span class="chip" style="background:rgba(255,255,255,.18);border-color:transparent;color:#ffffff">Место #3</span>
+      </div>
+    </section>
+
+    <!-- Баланс -->
+    <section class="grid2" style="margin-top:12px" data-od-id="section-balance">
+      <a class="card tight" href="shop.html" data-od-id="balance-active">
+        <div class="eyebrow">Активный баланс</div>
+        <div class="big sm" style="margin-top:6px" id="b-active">1 240</div>
+        <div class="small muted" style="margin-top:4px">можно потратить</div>
+      </a>
+      <a class="card tight" href="quests.html" data-od-id="balance-frozen">
+        <div class="eyebrow">Заморожено</div>
+        <div class="big sm" style="margin-top:6px" id="b-frozen">500</div>
+        <div class="small muted" style="margin-top:4px">под квестом</div>
+      </a>
+    </section>
+
+    <!-- Серия -->
+    <div class="sec"><h2 data-od-id="h-streak">Серия</h2><span class="small muted mono">рекорд 21</span></div>
+    <section class="card" data-od-id="section-streak">
+      <div class="row" style="gap:10px;align-items:baseline">
+        <span class="big" id="streak-n">12</span>
+        <span class="muted">дней подряд</span>
+      </div>
+      <div class="week" role="img" aria-label="Неделя: понедельник — воскресенье, отмечены выполненные дни">
+        <div class="day on">пн</div><div class="day on">вт</div><div class="day on">ср</div>
+        <div class="day on">чт</div><div class="day on">пт</div><div class="day">сб</div>
+        <div class="day on today">вс</div>
+      </div>
+      <p class="small muted" style="margin-top:12px">
+        День засчитывается, когда выполнен план продающих звонков и средняя оценка не ниже 7.
+      </p>
+    </section>
+
+    <!-- Стрики -->
+    <div class="sec"><h2 data-od-id="h-streaks">Стрики</h2><span class="small muted">×множитель уровня</span></div>
+    <section class="card" data-od-id="section-streaks">
+      <div class="lrow"><div class="body"><div class="title">Чистая речь</div><div class="sub">дни подряд без стоп-фраз</div></div><span class="mono">+10/д</span></div>
+      <div class="lrow"><div class="body"><div class="title">Оценка ≥ 7</div><div class="sub">дни со средней оценкой не ниже 7</div></div><span class="mono">+15/д</span></div>
+      <div class="lrow"><div class="body"><div class="title">Комбо-серия</div><div class="sub">комбо в каждом продающем звонке</div></div><span class="mono">+12/д</span></div>
+      <div class="lrow"><div class="body"><div class="title">Активность</div><div class="sub">план продающих звонков выполнен</div></div><span class="mono">+8/д</span></div>
+      <p class="small muted" style="margin-top:12px">
+        Стрики — единственный источник новых очков помимо самих звонков. Держатся на качестве, а не на объёме.
+      </p>
+    </section>
+
+    <!-- Достижения -->
+    <div class="sec"><h2 data-od-id="h-ach">Достижения</h2><span class="small muted mono">9 из 24</span></div>
+    <section class="card" data-od-id="section-ach">
+      <div class="ach">
+        <div class="got">1</div><div class="got">2</div><div class="got">3</div><div class="got">4</div>
+        <div class="got">5</div><div class="got">6</div><div class="got">7</div><div class="got">8</div>
+        <div class="got">9</div><div class="lock">•</div><div class="lock">•</div><div class="lock">•</div>
+      </div>
+      <div class="hr"></div>
+      <div class="lrow"><div class="tag win">★</div><div class="body"><div class="title">Снайпер</div><div class="sub">конверсия выше 25% две недели подряд</div></div></div>
+      <div class="lrow"><div class="tag win">◆</div><div class="body"><div class="title">Чистая речь</div><div class="sub">14 дней без стоп-фраз</div></div></div>
+    </section>
+
+    <!-- Материальные награды -->
+    <div class="sec"><h2 data-od-id="h-rewards">Материальные награды</h2></div>
+    <section class="card" data-od-id="section-rewards">
+      <div class="lrow">
+        <div class="body"><div class="title">Бонус «Снайпер»</div><div class="sub">начислен · июнь</div></div>
+        <span class="chip">сумма уточняется</span>
+      </div>
+      <div class="lrow">
+        <div class="body"><div class="title">Приз лиги</div><div class="sub">получен за Серебро · май</div></div>
+        <span class="chip">сумма уточняется</span>
+      </div>
+      <div class="lrow">
+        <div class="body"><div class="title">Золото лиги</div><div class="sub">в процессе · не хватает 3%</div></div>
+        <span class="chip accent">в работе</span>
+      </div>
+      <p class="small muted" style="margin-top:12px">
+        Каталог и бюджет материальных наград согласуются с компанией — до согласования суммы не показываются.
+      </p>
+    </section>
+
+    <!-- Тональность -->
+    <div class="sec"><h2 data-od-id="h-tone">Тональность недели</h2></div>
+    <section class="card" data-od-id="section-tone">
+      <div class="between">
+        <span class="big sm">72 <span class="muted" style="font-size:15px">/ 100</span></span>
+        <span class="delta up">▲ 3</span>
+      </div>
+      <div class="bar" style="margin-top:12px"><i style="width:72%"></i></div>
+      <p class="small muted" style="margin-top:12px">
+        Тон профессионально-ровный, клиенты чаще заинтересованы. Падение индекса — ранний сигнал выгорания,
+        а не повод для штрафа.
+      </p>
+    </section>
+
+    <!-- Уведомления -->
+    <div class="sec"><h2 data-od-id="h-notify">Уведомления</h2></div>
+    <section class="card" data-od-id="section-notify">
+      <label class="check" data-od-id="notify-review">
+        <input type="checkbox" checked>
+        <span class="cl">Разбор звонка готов<span class="sub small muted" style="display:block">когда сделка сорвана</span></span>
+      </label>
+      <label class="check" data-od-id="notify-quest">
+        <input type="checkbox" checked>
+        <span class="cl">Квест выполнен<span class="sub small muted" style="display:block">баланс разморожен</span></span>
+      </label>
+      <label class="check" data-od-id="notify-streak">
+        <input type="checkbox" checked>
+        <span class="cl">Серия под угрозой<span class="sub small muted" style="display:block">напоминание в 18:00</span></span>
+      </label>
+      <label class="check" data-od-id="notify-kudos">
+        <input type="checkbox">
+        <span class="cl">Признание от коллеги</span>
+      </label>
+      <label class="check" data-od-id="notify-week">
+        <input type="checkbox" checked>
+        <span class="cl">Итоги недели<span class="sub small muted" style="display:block">понедельник, 9:30</span></span>
+      </label>
+    </section>
+
+    <div class="stack" style="margin-top:22px">
+      <a class="btn ghost" href="kudos.html" data-od-id="btn-kudos">Лента признания</a>
+      <a class="btn ghost" href="shop.html" data-od-id="btn-shop">Магазин наград</a>
+      <a class="btn ghost" href="login.html" data-od-id="btn-logout">Выйти из аккаунта</a>
+    </div>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var S = App.state;
+  document.getElementById('b-active').textContent = App.num(S.balanceActive);
+  document.getElementById('b-frozen').textContent = App.num(S.balanceFrozen);
+  document.getElementById('streak-n').textContent = S.streak;
+
+  document.querySelectorAll('[data-od-id="section-notify"] input').forEach(function (i) {
+    i.addEventListener('change', function () {
+      App.toast(this.checked ? 'Уведомление включено' : 'Уведомление выключено');
+    });
+  });
+})();
+</script>
+</body>
+</html>

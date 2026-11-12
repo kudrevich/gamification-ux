@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Заработок — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+<style>
+  .flow .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .flow .amt{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:-.02em}
+  .steps{display:flex;gap:3px;margin-top:10px}
+  .steps i{flex:1;height:8px;border-radius:var(--r-pill);background:var(--surface)}
+  .steps i.on{background:var(--accent)}
+  .rates{width:100%;border-collapse:collapse;font-size:13px}
+  .rates th,.rates td{padding:9px 6px;border-bottom:1px solid var(--border);text-align:right}
+  .rates th:first-child,.rates td:first-child{text-align:left}
+  .rates th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  .rates td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .rates td:first-child{font-family:var(--font);font-weight:500}
+  .rates td.cur{color:var(--accent);font-weight:600}
+  .rates tr:last-child td{border-bottom:none}
+  details.form{border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);padding:12px 14px}
+  details.form summary{font-size:14px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;min-height:24px}
+  details.form summary::-webkit-details-marker{display:none}
+  details.form summary::after{content:"+";font-family:var(--mono);color:var(--accent)}
+  details.form[open] summary::after{content:"−"}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-earnings">
+    <div class="ttl">
+      <div class="hi">Июль, к 9 числу</div>
+      <h1 data-od-id="h-earnings">Заработок</h1>
+    </div>
+    <a class="avatar" href="profile.html" aria-label="Профиль" data-od-id="link-profile">ИК</a>
+  </header>
+
+  <main data-od-id="main-earnings">
+
+    <section class="card hero" style="margin-top:14px" data-od-id="section-total">
+      <div class="eyebrow">Начислено за месяц</div>
+      <div class="big xl" style="margin-top:6px" id="total">42 250 ₽</div>
+      <p class="small" style="margin-top:10px;opacity:.85" id="total-note">
+        Оклад не входит — это переменная часть, которую вы двигаете разговорами.
+      </p>
+      <a class="btn" style="background:#ffffff;color:#0c0618;margin-top:16px" href="goal.html" data-od-id="btn-goal">Посчитать цель</a>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-flows">Потоки</h2><span class="small muted">ставка растёт ступенями</span></div>
+    <section class="stack" id="flows" data-od-id="section-flows"></section>
+
+    <div class="sec"><h2 data-od-id="h-help">Помощь коллегам</h2></div>
+    <section class="card" data-od-id="section-help">
+      <div class="kv"><span class="k">Помогли вы</span><span class="v">40 000 ₽</span></div>
+      <div class="kv"><span class="k">Помогли вам</span><span class="v">−15 000 ₽</span></div>
+      <div class="kv"><span class="k">Ставка</span><span class="v">5%</span></div>
+      <div class="kv total"><span>К начислению</span><span class="v">1 250 ₽</span></div>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-bonuses">Бонусы</h2><span class="small muted" id="bonus-sum">7 000 ₽</span></div>
+    <section class="card" id="bonuses" data-od-id="section-bonuses"></section>
+
+    <div class="sec"><h2 data-od-id="h-rates">Ступени ставок</h2></div>
+    <section class="card" data-od-id="section-rates">
+      <table class="rates" id="rates">
+        <thead><tr><th>Поток</th><th>200к</th><th>300к</th><th>400к</th><th>500к</th></tr></thead>
+        <tbody>
+          <tr data-flow="in"><td>Вход</td><td>3%</td><td>4%</td><td>5%</td><td>6.5%</td></tr>
+          <tr data-flow="upsell"><td>Апсейл</td><td>5%</td><td>6%</td><td>7%</td><td>9%</td></tr>
+          <tr data-flow="out"><td>Исход</td><td>6%</td><td>7%</td><td>8%</td><td>10%</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin-top:12px">Текущая ступень по каждому потоку подсвечена.</p>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-formula">Как это считается</h2></div>
+    <details class="form" data-od-id="details-formula">
+      <summary>Формула целиком</summary>
+      <p class="small mono muted" style="margin-top:12px;line-height:1.7">
+        (вход + апсейл + исход + помощь коллегам − помощь вам) × прогрессивный процент + бонусы-чекбоксы
+      </p>
+      <div class="hr"></div>
+      <div class="kv"><span class="k">Вход · 300 000 × 4%</span><span class="v">12 000 ₽</span></div>
+      <div class="kv"><span class="k">Апсейл · 200 000 × 5%</span><span class="v">10 000 ₽</span></div>
+      <div class="kv"><span class="k">Исход · 200 000 × 6%</span><span class="v">12 000 ₽</span></div>
+      <div class="kv"><span class="k">Помощь · (40 000 − 15 000) × 5%</span><span class="v">1 250 ₽</span></div>
+      <div class="kv"><span class="k">Бонусы</span><span class="v" id="f-bonus">7 000 ₽</span></div>
+      <div class="kv total"><span>Итого</span><span class="v" id="f-total">42 250 ₽</span></div>
+    </details>
+
+    <p class="note" style="margin-top:14px" data-od-id="note-source">
+      Суммы потоков тянутся из CRM, ставка берётся из таблицы ступеней по фактическому обороту.
+      Ни одно значение не вводится вручную.
+    </p>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="earnings" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var S = App.state;
+
+  var TIERS = [200000, 300000, 400000, 500000];
+  var RATES = {
+    in:     [3, 4, 5, 6.5],
+    upsell: [5, 6, 7, 9],
+    out:    [6, 7, 8, 10]
+  };
+  var FLOWS = [
+    { key: 'in',     name: 'Входящий',   amount: 300000 },
+    { key: 'upsell', name: 'Апсейл',     amount: 200000 },
+    { key: 'out',    name: 'Исходящий',  amount: 200000 }
+  ];
+  var HELP = 1250;
+
+  var BONUSES = [
+    { key: 'interview', name: 'План интервью',        amount: 3500, confirmed: true },
+    { key: 'gk',        name: 'Конверсия в ГК',       amount: 3500, confirmed: true },
+    { key: 'crm',       name: 'Ведение CRM',          amount: 4500, confirmed: true },
+    { key: 'air',       name: 'План эфирного времени', amount: 3500, confirmed: false }
+  ];
+
+  function tierIndex(amount) {
+    var idx = 0;
+    for (var i = 0; i < TIERS.length; i++) if (amount >= TIERS[i]) idx = i;
+    return idx;
+  }
+  function rateOf(key, amount) { return RATES[key][tierIndex(amount)]; }
+
+  function bonusSum() {
+    return BONUSES.reduce(function (s, b) {
+      return s + (b.confirmed && S.bonuses[b.key] ? b.amount : 0);
+    }, 0);
+  }
+
+  function flowsSum() {
+    return FLOWS.reduce(function (s, f) {
+      return s + Math.round(f.amount * rateOf(f.key, f.amount) / 100);
+    }, 0);
+  }
+
+  function total() { return flowsSum() + HELP + bonusSum(); }
+
+  function renderFlows() {
+    document.getElementById('flows').innerHTML = FLOWS.map(function (f) {
+      var idx = tierIndex(f.amount);
+      var rate = RATES[f.key][idx];
+      var pay = Math.round(f.amount * rate / 100);
+      var nextTier = TIERS[idx + 1];
+      var nextRate = RATES[f.key][idx + 1];
+      var gap = nextTier ? nextTier - f.amount : 0;
+      var delta = nextTier ? Math.round(nextTier * nextRate / 100) - pay : 0;
+
+      var steps = TIERS.map(function (t, i) {
+        return '<i class="' + (i <= idx ? 'on' : '') + '"></i>';
+      }).join('');
+
+      return '<div class="card flow" data-od-id="flow-' + f.key + '">' +
+        '<div class="head"><span style="font-weight:600;font-size:15px">' + f.name + '</span>' +
+        '<span class="chip accent">' + rate + '%</span></div>' +
+        '<div class="between" style="margin-top:8px">' +
+          '<span class="amt">' + App.money(pay) + '</span>' +
+          '<span class="small muted mono">оборот ' + App.num(f.amount) + '</span>' +
+        '</div>' +
+        '<div class="steps">' + steps + '</div>' +
+        (nextTier
+          ? '<p class="small muted" style="margin-top:10px">До ставки ' + nextRate + '% — ещё ' +
+            App.num(gap) + ' ₽ оборота, это <span class="mono">+' + App.num(delta) + ' ₽</span></p>'
+          : '<p class="small muted" style="margin-top:10px">Максимальная ставка достигнута</p>') +
+      '</div>';
+    }).join('');
+  }
+
+  function renderBonuses() {
+    document.getElementById('bonuses').innerHTML = BONUSES.map(function (b) {
+      var on = S.bonuses[b.key];
+      return '<label class="check' + (b.confirmed ? '' : ' locked') + '" data-od-id="bonus-' + b.key + '">' +
+        '<input type="checkbox" data-b="' + b.key + '"' + (on && b.confirmed ? ' checked' : '') +
+        (b.confirmed ? '' : ' disabled') + '>' +
+        '<span class="cl">' + b.name +
+        (b.confirmed ? '' : '<span class="small muted" style="display:block">не подтверждён руководителем</span>') +
+        '</span>' +
+        '<span class="cv">+' + App.num(b.amount) + ' ₽</span></label>';
+    }).join('');
+
+    document.querySelectorAll('#bonuses input').forEach(function (i) {
+      i.addEventListener('change', function () {
+        S.bonuses[this.getAttribute('data-b')] = this.checked;
+        App.save();
+        paint();
+        App.toast(this.checked ? 'Бонус учтён в расчёте' : 'Бонус снят с расчёта');
+      });
+    });
+  }
+
+  function markRates() {
+    FLOWS.forEach(function (f) {
+      var row = document.querySelector('#rates tr[data-flow="' + f.key + '"]');
+      var idx = tierIndex(f.amount);
+      row.querySelectorAll('td').forEach(function (td, i) {
+        td.classList.toggle('cur', i === idx + 1);
+      });
+    });
+  }
+
+  function paint() {
+    var t = total();
+    document.getElementById('total').textContent = App.money(t);
+    document.getElementById('bonus-sum').textContent = App.money(bonusSum());
+    document.getElementById('f-bonus').textContent = App.money(bonusSum());
+    document.getElementById('f-total').textContent = App.money(t);
+    try { sessionStorage.setItem('earnings.total', String(t)); } catch (e) {}
+  }
+
+  renderFlows();
+  renderBonuses();
+  markRates();
+  paint();
+})();
+</script>
+</body>
+</html>

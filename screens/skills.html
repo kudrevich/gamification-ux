@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Дерево навыков — Продажи</title>
+<link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar" data-od-id="topbar-skills">
+    <a class="iconbtn" href="dashboard.html" aria-label="На главную" data-od-id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Пять этапов скрипта</div>
+      <h1 class="sm">Дерево навыков</h1>
+    </div>
+  </header>
+
+  <main data-od-id="main-skills">
+
+    <div class="seg" id="period" style="margin-top:14px" data-od-id="seg-period">
+      <button data-value="week" aria-pressed="true">Неделя</button>
+      <button data-value="month" aria-pressed="false">Месяц</button>
+    </div>
+
+    <section class="card" id="tree" style="margin-top:14px" data-od-id="section-tree"></section>
+
+    <p class="note" style="margin-top:12px" data-od-id="note-method">
+      Шкала — средняя оценка этапа по всем продающим звонкам периода. Не количество звонков, а качество этапа.
+    </p>
+
+    <div class="sec"><h2 data-od-id="h-weak">Слабый узел</h2></div>
+    <section class="card" data-od-id="section-weak">
+      <div class="between">
+        <div>
+          <div class="eyebrow">Закрытие</div>
+          <div class="row" style="gap:8px;align-items:baseline;margin-top:4px">
+            <span class="big sm" id="weak-score">4.2</span>
+            <span class="muted mono">из 10</span>
+          </div>
+        </div>
+        <span class="chip accent">−2.6 к среднему</span>
+      </div>
+      <p class="small muted" style="margin-top:12px">
+        В 11 звонках за период этап оценён ниже 5. В восьми из них не был назначен следующий шаг —
+        та же причина, что и в главной статье потерь.
+      </p>
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn accent sm" style="flex:1" id="make-quest" data-od-id="btn-make-quest">Сделать квестом</button>
+        <a class="btn ghost sm" style="flex:1" href="calls.html" data-od-id="btn-weak-calls">Звонки с просадкой</a>
+      </div>
+    </section>
+
+    <div class="sec"><h2 data-od-id="h-detail">Разбор по этапам</h2></div>
+    <section class="stack" id="detail" data-od-id="section-detail"></section>
+
+  </main>
+
+  <nav class="tabbar" data-tabbar="dashboard" data-od-id="tabbar"></nav>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+(function () {
+  var SKILLS = {
+    week: [
+      { name: 'Приветствие',   v: 8.1, n: 27, hint: 'Стандарт держится, отклонений нет.' },
+      { name: 'Квалификация',  v: 7.4, n: 27, hint: 'Локализующий вопрос задан в 19 звонках из 27.' },
+      { name: 'Презентация',   v: 6.3, n: 24, hint: 'Чаще перечисление свойств, реже — под задачу клиента.' },
+      { name: 'Возражения',    v: 5.6, n: 22, hint: 'Первая отработка есть почти всегда, вторая — в трети звонков.' },
+      { name: 'Закрытие',      v: 4.2, n: 24, hint: 'Следующий шаг назначается в 58% разговоров.' }
+    ],
+    month: [
+      { name: 'Приветствие',   v: 8.0, n: 112, hint: 'Стабильно весь месяц.' },
+      { name: 'Квалификация',  v: 7.1, n: 112, hint: 'Рост на 0.6 с начала месяца.' },
+      { name: 'Презентация',   v: 6.1, n: 98,  hint: 'Без выраженной динамики.' },
+      { name: 'Возражения',    v: 5.4, n: 94,  hint: 'Вторая отработка — точка роста.' },
+      { name: 'Закрытие',      v: 4.4, n: 99,  hint: 'Слабейший этап четвёртую неделю подряд.' }
+    ]
+  };
+
+  function render(key) {
+    var list = SKILLS[key];
+    var min = Math.min.apply(null, list.map(function (s) { return s.v; }));
+
+    document.getElementById('tree').innerHTML = list.map(function (s) {
+      var weak = s.v === min;
+      return '<div class="skill ' + (weak ? 'weak' : '') + '" data-od-id="skill-' + s.name.toLowerCase() + '">' +
+        '<div class="head"><span class="name">' + s.name + '</span>' +
+        '<span class="score">' + s.v.toFixed(1) + '</span></div>' +
+        '<div class="track"><i style="width:' + (s.v * 10) + '%"></i></div></div>';
+    }).join('') + '<p class="small muted" style="margin-top:4px">Слабый узел подсвечен — из него система назначает квест.</p>';
+
+    document.getElementById('weak-score').textContent = min.toFixed(1);
+
+    document.getElementById('detail').innerHTML = list.map(function (s) {
+      return '<div class="card tight" data-od-id="detail-' + s.name.toLowerCase() + '">' +
+        '<div class="between"><span class="title" style="font-weight:600;font-size:14.5px">' + s.name + '</span>' +
+        '<span class="mono small muted">' + s.v.toFixed(1) + ' · ' + s.n + ' звонков</span></div>' +
+        '<p class="small muted" style="margin-top:6px">' + s.hint + '</p></div>';
+    }).join('');
+  }
+
+  document.getElementById('period').addEventListener('segchange', function (e) {
+    render(e.detail.value);
+  });
+
+  document.getElementById('make-quest').addEventListener('click', function () {
+    var S = App.state;
+    if (S.quest && S.quest.accepted) {
+      App.toast('Квест «' + S.quest.title + '» уже активен');
+      return;
+    }
+    S.quest = { id: 'close-nice', title: 'Дожать красиво', accepted: true, progress: 0, target: 5, frozen: 500 };
+    S.balanceActive -= 500;
+    S.balanceFrozen += 500;
+    App.save();
+    App.toast('Квест взят · заморожено 500');
+    setTimeout(function () { location.href = 'quests.html'; }, 700);
+  });
+
+  render('week');
+})();
+</script>
+</body>
+</html>
