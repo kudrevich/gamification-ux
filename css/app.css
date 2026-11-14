@@ -15,6 +15,13 @@
 
   --r-lg:28px; --r-md:18px; --r-sm:12px; --r-pill:999px;
 
+  /* Смысловые цвета результата: верно / частично / ноль. Тон, насыщенность и
+     светлота заданы числами, чтобы значения были явными и совпадали в файле и
+     в отрендеренном виде. */
+  --ok:#146c33;
+  --warn:#8a4f08;
+  --zero:#b42318;
+
   --shadow:0 24px 70px rgba(12,6,24,.10);
   --shadow-sm:0 6px 18px rgba(12,6,24,.06);
   --shadow-accent:0 18px 44px rgba(90,40,255,.22);
@@ -162,6 +169,12 @@ main.no-tabbar{padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
 .chip.accent{background:color-mix(in srgb,#5a28ff 10%,transparent);color:var(--accent);border-color:transparent}
 .chip.blue{background:color-mix(in srgb,#1447e6 10%,transparent);color:var(--accent-2);border-color:transparent}
 .chip.ghost{background:transparent}
+/* Смысловые варианты результата ответа: зелёный — верно, жёлтый — частично,
+   красный — ноль. У всех трёх контраст к белому и к своей подложке 4,5+ (AA). */
+.chip.correct{background:color-mix(in srgb,var(--ok) 10%,transparent);color:var(--ok);border-color:transparent}
+.chip.partial{background:color-mix(in srgb,var(--warn) 12%,transparent);color:var(--warn);border-color:transparent}
+.chip.zero{background:color-mix(in srgb,var(--zero) 10%,transparent);color:var(--zero);border-color:transparent}
+.chip .quiz-feedback-glyph{font-size:12px}
 .chip .n{font-family:var(--mono);opacity:.65}
 
 .btn{
@@ -366,13 +379,21 @@ textarea.input{min-height:88px;resize:vertical;line-height:1.4}
 .quiz-option .quiz-letter{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--surface);font:600 11px var(--mono);color:var(--muted)}
 .quiz-option .quiz-option-copy{flex:1;min-width:0}
 .quiz-option .quiz-option-meta{display:block;margin-top:7px;font:600 10.5px var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
-.quiz-option.is-correct{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,#5a28ff 35%,transparent);background:color-mix(in srgb,#5a28ff 7%,#ffffff)}
-.quiz-option.is-partial{border-color:var(--accent-2);background:color-mix(in srgb,#1447e6 6%,#ffffff)}
-.quiz-option.is-selected-wrong{border-color:var(--muted);background:var(--surface)}
+/* Цвет подкреплён значком и подписью — различимо без восприятия цвета. */
+.quiz-option.is-correct{border-color:color-mix(in srgb,var(--ok) 55%,var(--border));
+                        background:color-mix(in srgb,var(--ok) 7%,#ffffff);
+                        box-shadow:0 0 0 2px color-mix(in srgb,var(--ok) 30%,transparent)}
+.quiz-option.is-partial{border-color:color-mix(in srgb,var(--warn) 55%,var(--border));
+                        background:color-mix(in srgb,var(--warn) 8%,#ffffff)}
+/* Неверный и шуточный ответы — один смысловой цвет «ноль», значки разные. */
+.quiz-option.is-selected-wrong,.quiz-option.is-selected-joke{
+  border-color:color-mix(in srgb,var(--zero) 45%,var(--border));
+  background:color-mix(in srgb,var(--zero) 6%,#ffffff)}
 /* Верный ответ, когда выбран чужой вариант: заметно, но тише собственного выбора. */
-.quiz-option.is-canonical{border-style:dashed;border-color:var(--accent)}
-.quiz-option.is-correct .quiz-option-meta{color:var(--accent)}
-.quiz-option.is-partial .quiz-option-meta{color:var(--accent-2)}
+.quiz-option.is-canonical{border-style:dashed;border-color:color-mix(in srgb,var(--ok) 60%,var(--border))}
+.quiz-option.is-correct .quiz-option-meta,
+.quiz-option.is-canonical .quiz-option-meta{color:var(--ok)}
+.quiz-option.is-partial .quiz-option-meta{color:var(--warn)}
 .quiz-option-glyph{margin-right:5px;font:600 11px/1 var(--mono)}
 .quiz-dock{
   position:fixed;z-index:25;left:50%;bottom:0;transform:translateX(-50%);
@@ -384,8 +405,14 @@ textarea.input{min-height:88px;resize:vertical;line-height:1.4}
 /* Один блок вместо разбросанных меток: статус, очки, объяснение, действие. */
 .quiz-dock .quiz-feedback{padding:13px 14px;animation:quiz-in .22s ease-out}
 .quiz-dock .quiz-feedback-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.quiz-dock .quiz-feedback-pts{font-size:14px;font-weight:600}
-.quiz-dock .quiz-feedback p{margin-top:8px;font-size:13px;line-height:1.45;color:var(--muted)}
+/* Цвет результата ответа: зелёный — верно, жёлтый — частично, красный — ноль.
+   У всех трёх оттенков контраст к белому фону и к своей подложке 4,5+ (AA).
+   Цвет всегда дублируется значком и подписью — смысл виден и без него. */
+.quiz-dock .quiz-feedback.is-correct .quiz-feedback-pts{color:var(--ok)}
+.quiz-dock .quiz-feedback.is-partial .quiz-feedback-pts{color:var(--warn)}
+.quiz-dock .quiz-feedback.is-zero .quiz-feedback-pts{color:var(--zero)}
+.quiz-dock .quiz-feedback-pts{font-size:15px;font-weight:700}
+.quiz-dock .quiz-feedback p{margin-top:8px;font-size:13.5px;line-height:1.45;color:var(--muted)}
 .quiz-dock .quiz-running{margin-top:11px;padding-top:10px;border-top:1px solid var(--border)}
 .quiz-dock .quiz-running-meta{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
 .quiz-dock .quiz-running .bar{margin-bottom:6px}

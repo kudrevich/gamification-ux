@@ -175,7 +175,7 @@
     return String(Math.round(value * 10) / 10).replace('.', ',');
   }
 
-  /* Русские числительные: 1 очко, 4,8 очка, 9,7 очка, 10 очков, 0 очков.
+  /* Русские числительные: 1 очко, 4,8 очка, 9,7 очка, 0 очков.
      Дробь управляет родительным падежом единственного числа
      (девять целых семь десятых очка), поэтому тип указывает формат записи. */
   function plural(value, type) {
@@ -198,6 +198,14 @@
     if (kind === 'correct') return '+' + fmtPoints(pts) + ' очка';
     if (kind === 'partial') return '+' + fmtPoints(pts) + ' очка из ' + fmtPoints(PER_QUESTION);
     return '0 очков из ' + fmtPoints(PER_QUESTION);
+  }
+
+  /* Цвет результата: зелёный — верно, жёлтый — частично, красный — ноль.
+     Пользователь опирается не только на цвет: сверху стоит значок и подпись. */
+  function chipClassFor(kind) {
+    if (kind === 'correct') return 'correct';
+    if (kind === 'partial') return 'partial';
+    return 'zero';
   }
 
   function render() {
@@ -236,6 +244,10 @@
           classNames.push('is-partial');
           indicator = escapeHTML(GLYPHS.partial);
           tag = 'Частично · ваш ответ';
+        } else if (isSelected && option.kind === 'joke') {
+          classNames.push('is-selected-joke');
+          indicator = escapeHTML(GLYPHS.joke);
+          tag = escapeHTML(TYPE_LABELS.joke) + ' · ваш ответ';
         } else if (isSelected) {
           classNames.push('is-selected-wrong');
           indicator = escapeHTML(GLYPHS[option.kind]);
@@ -266,9 +278,9 @@
 
     var dockHTML = '';
     if (selected) {
-      dockHTML = '<div class="card quiz-feedback" data-od-id="quiz-feedback">' +
+      dockHTML = '<div class="card quiz-feedback ' + (selected.kind === 'correct' ? 'is-correct' : selected.kind === 'partial' ? 'is-partial' : 'is-zero') + '" data-od-id="quiz-feedback">' +
         '<div class="quiz-feedback-row">' +
-          '<span class="chip ' + (selected.kind === 'correct' ? 'accent' : selected.kind === 'partial' ? 'blue' : 'ghost') + '" data-od-id="quiz-feedback-mark">' +
+          '<span class="chip ' + chipClassFor(selected.kind) + '" data-od-id="quiz-feedback-mark">' +
             '<span class="quiz-feedback-glyph" aria-hidden="true">' + escapeHTML(GLYPHS[selected.kind]) + '</span>' +
             escapeHTML(TYPE_LABELS[selected.kind]) +
           '</span>' +
@@ -277,11 +289,10 @@
         '<p>' + escapeHTML(selected.explanation) + '</p>' +
         '<div class="quiz-running">' +
           '<div class="quiz-running-meta">' +
-            '<span class="small muted">Накоплено</span>' +
+            '<span class="small muted">Накоплено очков</span>' +
             '<span class="mono">' + runningTotal() + ' <span class="muted small">из ' + BASE_REWARD + '</span></span>' +
           '</div>' +
           '<div class="bar thin"><i style="width:' + Math.round(runningTotal() / BASE_REWARD * 100) + '%"></i></div>' +
-          '<span class="small muted">У каждого вопроса равная доля: ' + fmtPoints(PER_QUESTION) + ' очка</span>' +
         '</div>' +
         '<button type="button" class="btn accent quiz-next" id="quiz-next" data-od-id="btn-quiz-next">' + (index === QUESTIONS.length - 1 ? 'Завершить квиз' : 'Дальше') + '</button>';
     }
@@ -388,13 +399,13 @@
         '<div class="between"><div><div class="eyebrow">' + escapeHTML(question.stage) + ' · ' + escapeHTML(question.timestamp) + '</div>' +
         '<h3 style="margin-top:5px">' + escapeHTML(question.prompt) + '</h3></div>' +
         '<div class="quiz-result-score">' +
-          '<span class="chip ' + (selected.kind === 'correct' ? 'accent' : selected.kind === 'partial' ? 'blue' : 'ghost') + '" data-od-id="quiz-result-' + escapeHTML(question.id) + '-mark">' +
+          '<span class="chip ' + chipClassFor(selected.kind) + '" data-od-id="quiz-result-' + escapeHTML(question.id) + '-mark">' +
             '<span class="quiz-feedback-glyph" aria-hidden="true">' + escapeHTML(GLYPHS[selected.kind]) + '</span>' +
             escapeHTML(resultText) +
           '</span>' +
-          '<span class="quiz-result-mark mono">' + fmtPoints(pointsForContribution(selected.kind)) + ' ' + plural(1, 'whole') + ' из ' + fmtPoints(PER_QUESTION) + '</span>' +
+          '<span class="quiz-result-mark mono">' + fmtPoints(pointsForContribution(selected.kind)) + ' из ' + fmtPoints(PER_QUESTION) + '</span>' +
         '</div></div>' +
-        '<p><strong>Ваш ответ:</strong> ' + escapeHTML(selected.text) + '</p>' + canonical +
+        '<p class="quiz-result-answer"><strong>Ваш ответ:</strong> ' + escapeHTML(selected.text) + '</p>' + canonical +
         '<p>' + escapeHTML(selected.explanation) + '</p></article>';
     }).join('');
 
