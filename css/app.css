@@ -347,8 +347,10 @@ textarea.input{min-height:88px;resize:vertical;line-height:1.4}
 }
 
 /* --- Квиз после звонка ---------------------------------------------------- */
+/* scroll-padding-bottom тут не срабатывает, поэтому прокрутку под плавающую
+   панель ответа считает scrollAfterAnswer() в js/call-quiz.js. */
 .quiz-main{min-height:100dvh;padding:calc(env(safe-area-inset-top) + 12px) var(--gutter) calc(env(safe-area-inset-bottom) + 24px)}
-.quiz-main.has-dock{padding-bottom:calc(240px + env(safe-area-inset-bottom))}
+.quiz-main.has-dock{padding-bottom:calc(320px + env(safe-area-inset-bottom))}
 .quiz-progress{margin-top:0}
 .quiz-progress-meta{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
 .quiz-progress-meta strong{font-size:13px}
@@ -364,9 +366,14 @@ textarea.input{min-height:88px;resize:vertical;line-height:1.4}
 .quiz-option .quiz-letter{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--surface);font:600 11px var(--mono);color:var(--muted)}
 .quiz-option .quiz-option-copy{flex:1;min-width:0}
 .quiz-option .quiz-option-meta{display:block;margin-top:7px;font:600 10.5px var(--mono);letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
-.quiz-option.is-correct{border-color:var(--accent);background:color-mix(in srgb,#5a28ff 7%,#ffffff)}
+.quiz-option.is-correct{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,#5a28ff 35%,transparent);background:color-mix(in srgb,#5a28ff 7%,#ffffff)}
 .quiz-option.is-partial{border-color:var(--accent-2);background:color-mix(in srgb,#1447e6 6%,#ffffff)}
 .quiz-option.is-selected-wrong{border-color:var(--muted);background:var(--surface)}
+/* Верный ответ, когда выбран чужой вариант: заметно, но тише собственного выбора. */
+.quiz-option.is-canonical{border-style:dashed;border-color:var(--accent)}
+.quiz-option.is-correct .quiz-option-meta{color:var(--accent)}
+.quiz-option.is-partial .quiz-option-meta{color:var(--accent-2)}
+.quiz-option-glyph{margin-right:5px;font:600 11px/1 var(--mono)}
 .quiz-dock{
   position:fixed;z-index:25;left:50%;bottom:0;transform:translateX(-50%);
   width:100%;max-width:640px;max-height:42dvh;overflow-y:auto;
@@ -374,10 +381,18 @@ textarea.input{min-height:88px;resize:vertical;line-height:1.4}
   background:var(--bg);border-top:1px solid var(--border);box-shadow:var(--shadow-sm);
 }
 .quiz-dock[hidden]{display:none}
-.quiz-dock .quiz-feedback{margin:0;padding:11px 13px}
-.quiz-dock .quiz-feedback p{margin-top:3px}
-.quiz-dock .quiz-feedback .mono{margin-top:6px}
+/* Один блок вместо разбросанных меток: статус, очки, объяснение, действие. */
+.quiz-dock .quiz-feedback{padding:13px 14px;animation:quiz-in .22s ease-out}
+.quiz-dock .quiz-feedback-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.quiz-dock .quiz-feedback-pts{font-size:14px;font-weight:600}
+.quiz-dock .quiz-feedback p{margin-top:8px;font-size:13px;line-height:1.45;color:var(--muted)}
+.quiz-dock .quiz-running{margin-top:11px;padding-top:10px;border-top:1px solid var(--border)}
+.quiz-dock .quiz-running-meta{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.quiz-dock .quiz-running .bar{margin-bottom:6px}
+.quiz-dock .quiz-running>span:last-child{display:block}
 .quiz-dock .quiz-next{margin-top:10px}
+@keyframes quiz-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .quiz-dock .quiz-feedback{animation:none} }
 .quiz-entry{margin-top:12px}
 .quiz-entry-title{font-size:14px;font-weight:600}
 .quiz-entry-copy{margin-top:5px;color:var(--muted);font-size:12.5px;line-height:1.4}

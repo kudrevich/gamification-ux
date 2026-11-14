@@ -4,13 +4,17 @@
   var CALL_ID = '54115';
   var BASE_REWARD = 58;
   var STORE_KEY = 'callQuiz:v2:' + CALL_ID;
-  var LETTERS = ['А', 'Б', 'В', 'Г'];
   var TYPE_LABELS = {
     correct: 'Верно',
-    partial: 'Частично · 50%',
-    wrong: 'Неверно · 0 очков',
-    joke: 'Шуточный ответ · 0 очков'
+    partial: 'Частично',
+    wrong: 'Неверно',
+    joke: 'Шуточный ответ'
   };
+  /* Маркер правильности дублирует цвет: значок + подпись. */
+  var GLYPHS = { correct: '✓', partial: '◐', wrong: '✕', joke: '☺' };
+  /* Доля одного вопроса: базовая награда делится поровну. */
+  var PER_QUESTION = BASE_REWARD / 6;
+  var EXIT_COPY = 'Квиз не завершён. При выходе попытка сбросится без начисления — при новом старте придётся пройти все вопросы заново. Перейти по ссылке «{href}»?';
 
   var QUESTIONS = [
     {
@@ -157,10 +161,43 @@
     return BASE_REWARD * earnedMultiplierTotal() / QUESTIONS.length;
   }
 
-  function textForContribution(kind) {
-    if (kind === 'correct') return '1/6 доли награды';
-    if (kind === 'partial') return '1/12 доли награды';
-    return '0 долей награды';
+  /* Доля вопроса в очках: полная, половина или ноль. */
+  function pointsForContribution(kind) {
+    return PER_QUESTION * multiplier(kind);
+  }
+
+  /* Та же логика, что в расчёте итога: округление один раз на выходе. */
+  function runningTotal() {
+    return Math.round(BASE_REWARD * earnedMultiplierTotal() / QUESTIONS.length);
+  }
+
+  function fmtPoints(value) {
+    return String(Math.round(value * 10) / 10).replace('.', ',');
+  }
+
+  /* Русские числительные: 1 очко, 4,8 очка, 9,7 очка, 10 очков, 0 очков.
+     Дробь управляет родительным падежом единственного числа
+     (девять целых семь десятых очка), поэтому тип указывает формат записи. */
+  function plural(value, type) {
+    var n = Math.round(value * 10) / 10;
+    var raw = String(n).split('.');
+    var whole = Math.abs(Number(raw[0]));
+    if (type === 'fraction' && raw.length === 2 && Number(raw[1]) !== 0) {
+      return 'очка';
+    }
+    var mod100 = whole % 100;
+    var mod10 = whole % 10;
+    if (mod100 >= 11 && mod100 <= 14) return 'очков';
+    if (mod10 === 1) return 'очко';
+    if (mod10 >= 2 && mod10 <= 4) return 'очка';
+    return 'очков';
+  }
+
+  function resultLine(kind) {
+    var pts = pointsForContribution(kind);
+    if (kind === 'correct') return '+' + fmtPoints(pts) + ' очка';
+    if (kind === 'partial') return '+' + fmtPoints(pts) + ' очка из ' + fmtPoints(PER_QUESTION);
+    return '0 очков из ' + fmtPoints(PER_QUESTION);
   }
 
   function render() {
@@ -185,30 +222,67 @@
       var option = optionById(question, id);
       if (!option) return '';
       var isSelected = option.id === selectedId;
-      var className = 'quiz-option';
-      var meta = '';
+      var isCanonical = option.kind === 'correct';
+      var classNames = ['quiz-option'];
+      var indicator = '';
+      var tag = '';
+
       if (selected) {
-        if (option.kind === 'correct') {
-          className += option.kind === 'correct' ? ' is-correct' : '';
-          meta = option.id === selectedId ? 'Верно · полная доля' : 'Правильный ответ';
+        if (isSelected && isCanonical) {
+          classNames.push('is-correct');
+          indicator = escapeHTML(GLYPHS.correct);
+          tag = 'Верно · ваш ответ';
         } else if (isSelected && option.kind === 'partial') {
-          className += ' is-partial'; meta = 'Частично · половина доли';
+          classNames.push('is-partial');
+          indicator = escapeHTML(GLYPHS.partial);
+          tag = 'Частично · ваш ответ';
         } else if (isSelected) {
-          className += ' is-selected-wrong'; meta = TYPE_LABELS[option.kind];
+          classNames.push('is-selected-wrong');
+          indicator = escapeHTML(GLYPHS[option.kind]);
+          tag = escapeHTML(TYPE_LABELS[option.kind]) + ' · ваш ответ';
+        } else if (isCanonical) {
+          /* Выбран неверный вариант — показываем, какой был верным. */
+          classNames.push('is-canonical');
+          indicator = escapeHTML(GLYPHS.correct);
+          tag = 'Верный ответ';
         }
       }
-      return '<button type="button" class="' + className + '" data-option-id="' + escapeHTML(option.id) + '"' + (selected ? ' disabled' : '') + '>' +
-        '<span class="quiz-letter" aria-hidden="true">' + LETTERS[i] + '</span>' +
-        '<span class="quiz-option-copy">' + escapeHTML(option.text) + (meta ? '<span class="quiz-option-meta">' + escapeHTML(meta) + '</span>' : '') + '</span>' +
+
+      var metaHTML = tag
+        ? '<span class="quiz-option-meta">' +
+            (indicator ? '<span class="quiz-option-glyph" aria-hidden="true">' + indicator + '</span>' : '') +
+            tag +
+          '</span>'
+        : '';
+
+      return '<button type="button" class="' + classNames.join(' ') + '"' +
+        ' data-answer="' + escapeHTML('e' + i) + '"' +
+        ' role="radio" aria-checked="' + (isSelected ? 'true' : 'false') + '"' +
+        ' tabindex="' + (i === (order.indexOf(selectedId)) || (!selected && i === 0) ? '0' : '-1') + '"' +
+        (selected ? ' disabled' : '') + '>' +
+        '<span class="quiz-option-copy">' + escapeHTML(option.text) + metaHTML + '</span>' +
         '</button>';
     }).join('');
 
     var dockHTML = '';
     if (selected) {
-      var resultLine = selected.kind === 'correct' ? 'Полная доля вопроса' : selected.kind === 'partial' ? 'Половина доли вопроса' : 'Доля вопроса не начисляется';
-      dockHTML = '<div class="quiz-feedback" role="status"><strong>' + escapeHTML(TYPE_LABELS[selected.kind]) + ' — ' + escapeHTML(resultLine) + '</strong>' +
+      dockHTML = '<div class="card quiz-feedback" data-od-id="quiz-feedback">' +
+        '<div class="quiz-feedback-row">' +
+          '<span class="chip ' + (selected.kind === 'correct' ? 'accent' : selected.kind === 'partial' ? 'blue' : 'ghost') + '" data-od-id="quiz-feedback-mark">' +
+            '<span class="quiz-feedback-glyph" aria-hidden="true">' + escapeHTML(GLYPHS[selected.kind]) + '</span>' +
+            escapeHTML(TYPE_LABELS[selected.kind]) +
+          '</span>' +
+          '<span class="quiz-feedback-pts mono" data-od-id="quiz-feedback-points">' + resultLine(selected.kind) + '</span>' +
+        '</div>' +
         '<p>' + escapeHTML(selected.explanation) + '</p>' +
-        '<span class="mono">' + escapeHTML(textForContribution(selected.kind)) + ' · промежуточный результат</span></div>' +
+        '<div class="quiz-running">' +
+          '<div class="quiz-running-meta">' +
+            '<span class="small muted">Накоплено</span>' +
+            '<span class="mono">' + runningTotal() + ' <span class="muted small">из ' + BASE_REWARD + '</span></span>' +
+          '</div>' +
+          '<div class="bar thin"><i style="width:' + Math.round(runningTotal() / BASE_REWARD * 100) + '%"></i></div>' +
+          '<span class="small muted">У каждого вопроса равная доля: ' + fmtPoints(PER_QUESTION) + ' очка</span>' +
+        '</div>' +
         '<button type="button" class="btn accent quiz-next" id="quiz-next" data-od-id="btn-quiz-next">' + (index === QUESTIONS.length - 1 ? 'Завершить квиз' : 'Дальше') + '</button>';
     }
 
@@ -228,21 +302,58 @@
         '<blockquote class="quote">' + escapeHTML(question.sourcePhrase) + '</blockquote>' +
       '</section>' +
       '<h2 class="quiz-question" id="question-title">' + escapeHTML(question.prompt) + '</h2>' +
-      '<div class="quiz-options" role="group" aria-labelledby="question-title">' + optionsHTML + '</div>';
+      '<div class="quiz-options" role="radiogroup" aria-labelledby="question-title">' + optionsHTML + '</div>';
 
-    content.querySelectorAll('[data-option-id]').forEach(function (button) {
+    var buttons = Array.prototype.slice.call(content.querySelectorAll('[data-answer]'));
+    var focusIndex = selectedId ? order.indexOf(selectedId) : 0;
+
+    function moveFocus(delta) {
+      if (!buttons.length || state.answers[index]) return;
+      focusIndex = (focusIndex + delta + buttons.length) % buttons.length;
+      buttons[focusIndex].focus();
+    }
+
+    buttons.forEach(function (button, i) {
       button.addEventListener('click', function () {
-        if (state.answers[index]) return;
-        state.answers[index] = this.getAttribute('data-option-id');
-        state.status = 'in_progress';
-        saveState();
-        renderQuestion();
+        choose(buttons[i], i);
+      });
+      button.addEventListener('keydown', function (event) {
+        var key = event.key;
+        if (key === 'ArrowDown' || key === 'ArrowRight') { event.preventDefault(); moveFocus(1); }
+        else if (key === 'ArrowUp' || key === 'ArrowLeft') { event.preventDefault(); moveFocus(-1); }
       });
     });
 
+    function choose(button) {
+      var entryId = button.getAttribute('data-answer');
+      var slot = Number(String(entryId).slice(1));
+      var id = state.optionOrder[index][slot];
+      if (!id || state.answers[index]) return;
+      state.answers[index] = id;
+      state.status = 'in_progress';
+      saveState();
+      renderQuestion();
+      /* Выбранный вариант подтягиваем на вид, чтобы плавающая панель его не закрыла. */
+      var picked = content.querySelector('[data-answer="' + entryId + '"]');
+      if (picked) scrollAfterAnswer(picked);
+    }
+
+    function scrollAfterAnswer(element) {
+      var dockTop = dock.getBoundingClientRect().top;
+      var box = element.getBoundingClientRect();
+      var gap = 12;
+      if (box.bottom > dockTop - gap) {
+        window.scrollBy({ top: box.bottom - dockTop + gap, behavior: 'smooth' });
+      } else if (box.top < gap) {
+        window.scrollBy({ top: box.top - gap, behavior: 'smooth' });
+      }
+    }
+
     var next = document.getElementById('quiz-next');
-    if (next) next.addEventListener('click', goNext);
-    bindExitWarning();
+    if (next) {
+      next.addEventListener('click', goNext);
+      next.focus();
+    }
   }
 
   function goNext() {
@@ -276,7 +387,13 @@
       return '<article class="quiz-result-item" data-od-id="quiz-result-' + escapeHTML(question.id) + '">' +
         '<div class="between"><div><div class="eyebrow">' + escapeHTML(question.stage) + ' · ' + escapeHTML(question.timestamp) + '</div>' +
         '<h3 style="margin-top:5px">' + escapeHTML(question.prompt) + '</h3></div>' +
-        '<div class="quiz-result-score">' + escapeHTML(textForContribution(selected.kind)) + '<span class="quiz-result-mark">' + escapeHTML(resultText) + '</span></div></div>' +
+        '<div class="quiz-result-score">' +
+          '<span class="chip ' + (selected.kind === 'correct' ? 'accent' : selected.kind === 'partial' ? 'blue' : 'ghost') + '" data-od-id="quiz-result-' + escapeHTML(question.id) + '-mark">' +
+            '<span class="quiz-feedback-glyph" aria-hidden="true">' + escapeHTML(GLYPHS[selected.kind]) + '</span>' +
+            escapeHTML(resultText) +
+          '</span>' +
+          '<span class="quiz-result-mark mono">' + fmtPoints(pointsForContribution(selected.kind)) + ' ' + plural(1, 'whole') + ' из ' + fmtPoints(PER_QUESTION) + '</span>' +
+        '</div></div>' +
         '<p><strong>Ваш ответ:</strong> ' + escapeHTML(selected.text) + '</p>' + canonical +
         '<p>' + escapeHTML(selected.explanation) + '</p></article>';
     }).join('');
@@ -299,7 +416,7 @@
       '<div class="sec"><h2>Результат по вопросам</h2><span class="small muted mono">' + QUESTIONS.length + ' / ' + QUESTIONS.length + '</span></div>' +
       '<div class="quiz-result-list">' + list + '</div>' +
       '<div class="quiz-result-actions"><a class="btn accent" href="call-detail.html" data-od-id="btn-return-to-call">Вернуться к разбору звонка</a></div>';
-    bindExitWarning();
+    if (window.App && typeof window.App.hydrate === 'function') window.App.hydrate();
   }
 
   function discardAttempt() {
@@ -307,41 +424,40 @@
     state.status = 'abandoned';
   }
 
-  function bindExitWarning() {
-    var back = document.getElementById('quiz-back');
-    if (back && !back.dataset.quizBound) {
-      back.dataset.quizBound = 'true';
-      back.addEventListener('click', function (event) {
-        if (state.status === 'completed') return;
-        if (!window.confirm('Квиз не завершён. При выходе попытка сбросится без начисления; при новом старте придётся пройти всё заново. Выйти?')) {
-          event.preventDefault();
-          return;
-        }
-        discardAttempt();
-        allowNavigation = true;
-      });
-    }
-    content.querySelectorAll('[data-quiz-exit]').forEach(function (link) {
-      if (link.dataset.quizBound) return;
-      link.dataset.quizBound = 'true';
-      link.addEventListener('click', function (event) {
-        if (state.status === 'completed') return;
-        if (!window.confirm('Квиз не завершён. При выходе попытка сбросится без начисления; при новом старте придётся пройти всё заново. Перейти к записи?')) {
-          event.preventDefault();
-          return;
-        }
-        discardAttempt();
-        allowNavigation = true;
-      });
+  function proceed() {
+    allowNavigation = true;
+    return true;
+  }
+
+  /* Один обработчик на документ: он переживает перерисовку экрана, поэтому
+     предупреждение о выходе действительно срабатывает. */
+  function bindExitGuards() {
+    if (bindExitGuards.bound) return;
+    bindExitGuards.bound = true;
+
+    document.addEventListener('click', function (event) {
+      var link = event.target.closest && event.target.closest('a[href]');
+      if (!link) return;
+      var href = link.getAttribute('href') || '';
+      if (href.charAt(0) === '#') return;
+      if (link.target === '_blank') return;
+      if (state.status === 'completed') return;
+      if (!confirm(EXIT_COPY.replace('{href}', href))) {
+        event.preventDefault();
+        return;
+      }
+      discardAttempt();
+      proceed();
     });
   }
 
-  window.addEventListener('beforeunload', function (event) {
-    if (state.status === 'completed' || allowNavigation) return;
-    event.preventDefault();
-    event.returnValue = '';
-  });
+  function init() {
+    bindExitGuards();
+    render();
+    /* Общие данные шапки подтягиваются после отрисовки разметки. */
+    if (window.App && typeof window.App.hydrate === 'function') window.App.hydrate();
+  }
 
   if (state.status === 'in_progress') saveState();
-  render();
+  init();
 })();

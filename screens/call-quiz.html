@@ -9,12 +9,24 @@
 </head>
 <body>
 <div class="app">
+
+  <header class="topbar" data-od-id="topbar-call-quiz">
+    <a class="iconbtn" id="quiz-back" href="call-detail.html" aria-label="Назад к разбору звонка" data-od-id="btn-quiz-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <div class="ttl">
+      <div class="hi">Разбор звонка</div>
+      <h1 class="sm" data-od-id="h-quiz">Вспомните ключевые моменты звонка</h1>
+    </div>
+  </header>
+
   <main id="quiz-main" class="quiz-main" data-od-id="main-call-quiz">
     <section id="quiz-content" aria-live="polite" data-od-id="quiz-content"></section>
     <section id="quiz-results" hidden data-od-id="quiz-results"></section>
   </main>
   <aside id="quiz-dock" class="quiz-dock" hidden aria-live="polite" data-od-id="quiz-answer-dock"></aside>
 </div>
+<script src="../js/app.js"></script>
 <script src="../js/call-quiz.js"></script>
 </body>
 </html>
