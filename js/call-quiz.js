@@ -426,13 +426,26 @@
       '</section>' +
       '<div class="sec"><h2>Результат по вопросам</h2><span class="small muted mono">' + QUESTIONS.length + ' / ' + QUESTIONS.length + '</span></div>' +
       '<div class="quiz-result-list">' + list + '</div>' +
-      '<div class="quiz-result-actions"><a class="btn accent" href="call-detail.html" data-od-id="btn-return-to-call">Вернуться к разбору звонка</a></div>';
+      '<div class="quiz-result-actions"><button type="button" class="btn" id="quiz-retry" data-od-id="btn-quiz-retry">Пройти квиз ещё раз</button>' +
+      '<a class="btn accent" href="call-detail.html" data-od-id="btn-return-to-call">Вернуться к разбору звонка</a></div>';
+    var retry = document.getElementById('quiz-retry');
+    if (retry) retry.addEventListener('click', startFresh);
     if (window.App && typeof window.App.hydrate === 'function') window.App.hydrate();
   }
 
   function discardAttempt() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     state.status = 'abandoned';
+  }
+
+  /* Демо-режим: сброс завершённой попытки и старт заново (варианты перемешаются).
+     В продакшене, где баллы начисляются один раз, отделите «попытку» от «начисления». */
+  function startFresh() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    state = freshState();
+    saveState();
+    renderQuestion();
+    window.scrollTo(0, 0);
   }
 
   function proceed() {
